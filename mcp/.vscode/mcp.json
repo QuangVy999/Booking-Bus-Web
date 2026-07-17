@@ -2,7 +2,7 @@
   "servers": {  
     "busPortal": {  
       "type": "stdio",  
-      "command": "node",  
+      "command": "node",
       "args": ["${workspaceFolder}/bus-portal/build/index.js"], 
       "cwd": "${workspaceFolder}",  
       "env": {  
