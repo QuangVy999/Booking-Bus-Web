@@ -35,8 +35,8 @@ export function createSeatInventoryGrpcHandlers(seatInventoryService) {
 
     async confirmSeats(call, callback) {
       try {
-        const { trip_id, seat_numbers } = call.request;
-        const result = await seatInventoryService.confirmSeats(trip_id, seat_numbers);
+        const { trip_id, seat_numbers, booking_id } = call.request;
+        const result = await seatInventoryService.confirmSeats(trip_id, seat_numbers, booking_id);
         
         callback(null, {
           success: result.success,
@@ -49,8 +49,8 @@ export function createSeatInventoryGrpcHandlers(seatInventoryService) {
 
     async releaseSeats(call, callback) {
       try {
-        const { trip_id, seat_numbers } = call.request;
-        const result = await seatInventoryService.releaseSeats(trip_id, seat_numbers);
+        const { trip_id, seat_numbers, booking_id } = call.request;
+        const result = await seatInventoryService.releaseSeats(trip_id, seat_numbers, booking_id);
         
         callback(null, {
           success: result.success,

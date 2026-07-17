@@ -56,16 +56,27 @@ export function createSeatInventoryService(repository, redisClient) {
       };
     },
 
-    async confirmSeats(tripId, seatNumbers) {
-      if (!tripId || !seatNumbers || seatNumbers.length === 0) {
-        throw new Error('INVALID_ARGUMENT: trip_id and seat_numbers are required');
+    async confirmSeats(tripId, seatNumbers, bookingId) {
+      if (!tripId || !seatNumbers || seatNumbers.length === 0 || !bookingId) {
+        throw new Error('INVALID_ARGUMENT: trip_id, seat_numbers and booking_id are required');
+      }
+
+      // Check if holds are still valid and belong to this booking
+      const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
+      const holds = await redisClient.mget(...keys);
+      for (let i = 0; i < holds.length; i++) {
+        if (!holds[i] || holds[i] !== bookingId) {
+          return {
+            success: false,
+            message: `Seat ${seatNumbers[i]} hold has expired or is held by another user`
+          };
+        }
       }
 
       // 1. Update status to BOOKED in DB
       await repository.updateSeatsStatus(tripId, seatNumbers, 'BOOKED');
 
       // 2. Remove locks from Redis
-      const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
       await redisClient.del(...keys);
 
       return {
@@ -155,20 +166,30 @@ export function createSeatInventoryService(repository, redisClient) {
       // 1. Check if any seat is already booked in database
       const dbSeats = await repository.findSeatsByNumbers(tripId, seatNumbers);
       for (const seat of dbSeats) {
-        if (seat.status === 'BOOKED') {
+        if (seat.status === 'BOOKED' || seat.status === 'BLOCKED') {
           return {
             success: false,
-            message: `Seat ${seat.seat_number} is already booked and cannot be blocked`
+            message: `Seat ${seat.seat_number} is already ${seat.status.toLowerCase()} and cannot be blocked`
           };
         }
       }
 
-      // 2. Update status to BLOCKED in DB
-      await repository.updateSeatsStatus(tripId, seatNumbers, 'BLOCKED');
+      // 2. Check if any seat is currently held in Redis
+      const redisKeys = seatNumbers.map(num => `hold:${tripId}:${num}`);
+      if (redisKeys.length > 0) {
+        const holds = await redisClient.mget(...redisKeys);
+        for (let i = 0; i < holds.length; i++) {
+          if (holds[i]) {
+            return {
+              success: false,
+              message: `Seat ${seatNumbers[i]} is currently held by a customer and cannot be blocked`
+            };
+          }
+        }
+      }
 
-      // 3. Remove locks from Redis if they were held
-      const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
-      await redisClient.del(...keys);
+      // 3. Update status to BLOCKED in DB
+      await repository.updateSeatsStatus(tripId, seatNumbers, 'BLOCKED');
 
       return {
         success: true,
