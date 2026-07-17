@@ -43,6 +43,16 @@ export default async function RootLayout({
               <a href="/dashboard/ai-advisor" className="opacity-85 hover:opacity-100 transition-opacity flex items-center gap-1.5">
                 <span>🤖</span> Trợ lý AI
               </a>
+              {user?.role === "Admin" && (
+                <a href="/dashboard" className="opacity-85 hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                  <span>📊</span> Dashboard
+                </a>
+              )}
+              {(user?.role === "Admin" || user?.role === "Check-in Staff") && (
+                <a href="/staff" className="opacity-85 hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                  <span>🎟️</span> Soát vé
+                </a>
+              )}
             </nav>
           </div>
           {user ? (
