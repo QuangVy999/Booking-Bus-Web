@@ -15,6 +15,22 @@ export function middleware(request: NextRequest) {
   const isStaffRoute = path.startsWith("/staff");
   const isProfileRoute = path.startsWith("/profile");
 
+  if (path === "/") {
+    if (token) {
+      try {
+        const payload: any = jwtDecode(token);
+        if (payload.role === "Admin") {
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+        if (payload.role === "Check-in Staff") {
+          return NextResponse.redirect(new URL("/staff", request.url));
+        }
+      } catch (e) {
+        // Ignore token errors on public homepage
+      }
+    }
+  }
+
   if (isDashboard || isStaffRoute || isProfileRoute) {
     if (!token) {
       const loginUrl = new URL("/login", request.url);
@@ -44,5 +60,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/staff/:path*", "/profile/:path*"],
+  matcher: ["/", "/dashboard/:path*", "/staff/:path*", "/profile/:path*"],
 };
