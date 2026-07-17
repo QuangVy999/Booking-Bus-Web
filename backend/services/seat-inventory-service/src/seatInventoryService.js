@@ -145,6 +145,24 @@ export function createSeatInventoryService(repository, redisClient) {
         tripId,
         seats: result
       };
+    },
+
+    async blockSeats(tripId, seatNumbers) {
+      if (!tripId || !seatNumbers || seatNumbers.length === 0) {
+        throw new Error('INVALID_ARGUMENT: trip_id and seat_numbers are required');
+      }
+
+      // 1. Update status to BLOCKED in DB
+      await repository.updateSeatsStatus(tripId, seatNumbers, 'BLOCKED');
+
+      // 2. Remove locks from Redis if they were held
+      const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
+      await redisClient.del(...keys);
+
+      return {
+        success: true,
+        message: 'Seats blocked successfully'
+      };
     }
   };
 }

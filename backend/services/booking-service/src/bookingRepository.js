@@ -36,6 +36,19 @@ export function createBookingRepository(db) {
       };
     },
 
+    async getBookingsByTrip(tripId, executor = db) {
+      const bookings = await executor('bookings').where({ trip_id: tripId });
+      
+      const enrichedBookings = await Promise.all(bookings.map(async b => {
+        const seats = await executor('booking_seats').where({ booking_id: b.id }).select('seat_number');
+        return {
+          ...b,
+          seatNumbers: seats.map(s => s.seat_number)
+        };
+      }));
+      return enrichedBookings;
+    },
+
     async updateBookingStatus(id, status, trx = null) {
       const executor = trx || db;
       await executor('bookings').where({ id }).update({
