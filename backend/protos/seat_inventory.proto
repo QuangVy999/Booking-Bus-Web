@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package seat_inventory;
+
+service SeatInventoryService {
+  rpc HoldSeats(HoldSeatsRequest) returns (HoldSeatsResponse);
+  rpc ConfirmSeats(ConfirmSeatsRequest) returns (ConfirmSeatsResponse);
+  rpc ReleaseSeats(ReleaseSeatsRequest) returns (ReleaseSeatsResponse);
+  rpc GetSeatInventory(GetSeatInventoryRequest) returns (GetSeatInventoryResponse);
+}
+
+message Seat {
+  string seat_number = 1;
+  string status = 2; // AVAILABLE, HELD, BOOKED, BLOCKED
+  string booking_id = 3;
+}
+
+message HoldSeatsRequest {
+  string trip_id = 1;
+  repeated string seat_numbers = 2;
+  string booking_id = 3;
+}
+
+message HoldSeatsResponse {
+  bool success = 1;
+  string message = 2;
+  int64 expiry_timestamp = 3;
+}
+
+message ConfirmSeatsRequest {
+  string trip_id = 1;
+  repeated string seat_numbers = 2;
+}
+
+message ConfirmSeatsResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ReleaseSeatsRequest {
+  string trip_id = 1;
+  repeated string seat_numbers = 2;
+}
+
+message ReleaseSeatsResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetSeatInventoryRequest {
+  string trip_id = 1;
+}
+
+message GetSeatInventoryResponse {
+  string trip_id = 1;
+  repeated Seat seats = 2;
+}

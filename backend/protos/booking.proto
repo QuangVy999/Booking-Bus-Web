@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package booking;
+
+service BookingService {
+  rpc CreateBooking(CreateBookingRequest) returns (CreateBookingResponse);
+  rpc ConfirmPayment(ConfirmPaymentRequest) returns (ConfirmPaymentResponse);
+  rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
+  rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
+}
+
+message CreateBookingRequest {
+  string trip_id = 1;
+  repeated string seat_numbers = 2;
+  string passenger_name = 3;
+  string passenger_email = 4;
+  string passenger_phone = 5;
+}
+
+message CreateBookingResponse {
+  string booking_id = 1;
+  string booking_code = 2;
+  string status = 3;
+  int64 expiry_timestamp = 4;
+}
+
+message ConfirmPaymentRequest {
+  string booking_id = 1;
+}
+
+message ConfirmPaymentResponse {
+  bool success = 1;
+  string status = 2;
+}
+
+message CancelBookingRequest {
+  string booking_id = 1;
+}
+
+message CancelBookingResponse {
+  bool success = 1;
+  string status = 2;
+}
+
+message GetBookingRequest {
+  string booking_id = 1;
+  string booking_code = 2;
+  string passenger_email = 3;
+}
+
+message GetBookingResponse {
+  string booking_id = 1;
+  string booking_code = 2;
+  string trip_id = 3;
+  repeated string seat_numbers = 4;
+  string passenger_name = 5;
+  string passenger_email = 6;
+  string status = 7;
+}
