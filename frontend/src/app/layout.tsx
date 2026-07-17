@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 
 import { getCurrentStudent } from "@/lib/auth/session";
 import { logoutAction } from "@/app/actions/auth";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Booking Bus Web",
@@ -57,12 +58,15 @@ export default async function RootLayout({
           </div>
           {user ? (
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+              <Link 
+                href="/profile" 
+                className="flex items-center gap-2 hover:opacity-80 transition"
+              >
                 <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <span className="font-medium text-sm">{user.name}</span>
-              </div>
+              </Link>
               <form action={logoutAction}>
                 <button type="submit" className="text-sm opacity-80 hover:opacity-100 transition">
                   Đăng xuất
