@@ -20,9 +20,10 @@ interface BookingInfo {
 
 interface ConfirmationPageClientProps {
   booking: BookingInfo;
+  trip?: any;
 }
 
-export default function ConfirmationPageClient({ booking }: ConfirmationPageClientProps) {
+export default function ConfirmationPageClient({ booking, trip }: ConfirmationPageClientProps) {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>('05:00');
@@ -66,7 +67,28 @@ export default function ConfirmationPageClient({ booking }: ConfirmationPageClie
     }
   };
 
-  const totalAmount = booking.seatNumbers.length * 250000;
+  const pricePerSeat = trip ? trip.price : 250000;
+  const totalAmount = booking.seatNumbers.length * pricePerSeat;
+
+  const formatDepartureTime = (isoString: string) => {
+    try {
+      const dateObj = new Date(isoString);
+      const timePart = dateObj.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC",
+      });
+      const datePart = dateObj.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+      });
+      return `${timePart} ${datePart}`;
+    } catch (e) {
+      return "08:00 27/07/2026";
+    }
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-6 text-slate-700">
@@ -87,7 +109,7 @@ export default function ConfirmationPageClient({ booking }: ConfirmationPageClie
           </div>
         )}
         {booking.status === 'CANCELLED' && (
-          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rose-50 border border-rose-200 text-rose-600 rounded-full text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-rose-50 border border-rose-250 text-rose-600 rounded-full text-xs font-bold">
             <XCircle className="w-4 h-4" />
             <span>Vé đã bị hủy / hết hạn</span>
           </div>
@@ -109,7 +131,18 @@ export default function ConfirmationPageClient({ booking }: ConfirmationPageClie
               <Bus className="w-5 h-5 text-slate-400 mt-0.5" />
               <div>
                 <span className="text-[10px] uppercase text-slate-400 font-bold">Tuyến xe</span>
-                <p className="text-sm font-bold text-slate-850">Chuyến xe {booking.tripId}</p>
+                <p className="text-sm font-bold text-slate-850">
+                  {trip ? `${trip.route.origin} → ${trip.route.destination}` : `Chuyến xe ${booking.tripId}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Clock className="w-5 h-5 text-slate-400 mt-0.5" />
+              <div>
+                <span className="text-[10px] uppercase text-slate-400 font-bold">Thời gian xuất bến</span>
+                <p className="text-sm font-bold text-slate-850">
+                  {trip ? formatDepartureTime(trip.departureTime) : "08:00 27/07/2026"}
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
