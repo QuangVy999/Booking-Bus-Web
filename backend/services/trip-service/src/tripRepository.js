@@ -1,4 +1,5 @@
 import { db } from "./db.js";
+import crypto from 'node:crypto';
 
 export const tripRepository = {
   // STOPS
@@ -105,8 +106,14 @@ export const tripRepository = {
   // TRIPS
   async createTrip(data) {
     const tripData = {
-      ...data,
-      bus_company: "Phương Trang Demo"
+      id: data.id || crypto.randomUUID(),
+      route_id: data.route_id,
+      vehicle_id: data.vehicle_id,
+      departure_time: data.departure_time,
+      arrival_time: data.arrival_time,
+      price: Number(data.price),
+      status: data.status || 'PENDING',
+      bus_company: data.bus_company || 'Phương Trang Demo'
     };
     const [trip] = await db("trips").insert(tripData).returning("*");
     return trip;
