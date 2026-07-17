@@ -1,6 +1,12 @@
 import { GraphQLError } from 'graphql';
 import { grpcClients, callUnary } from './grpcClients.js';
 
+const trips = [
+  { id: 'TRIP-001', origin: 'Sài Gòn', destination: 'Đà Lạt', route: 'Sài Gòn → Đà Lạt', departureTime: '2026-07-18T07:00:00+07:00', price: 250000, availableSeats: 25 },
+  { id: 'TRIP-002', origin: 'Sài Gòn', destination: 'Nha Trang', route: 'Sài Gòn → Nha Trang', departureTime: '2026-07-18T08:30:00+07:00', price: 310000, availableSeats: 18 },
+];
+const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://localhost:4010';
+
 function toGraphQLError(error, fallbackMessage = 'Internal server error') {
   if (error.code === 5) { // NOT_FOUND
     return new GraphQLError(error.details || 'Resource not found', {
@@ -78,10 +84,19 @@ export const resolvers = {
     },
     searchTrips: async (_, { origin, destination, date }) => {
       try {
-        const response = await callUnary(grpcClients.catalog, 'SearchTrips', { origin, destination, date });
+        const searchDate = date || new Date().toISOString().split('T')[0];
+        const response = await callUnary(grpcClients.catalog, 'SearchTrips', { origin, destination, date: searchDate });
         return (response.trips || []).map(mapTrip);
       } catch (error) {
         throw toGraphQLError(error, 'Failed to search trips');
+      }
+    },
+    trip: async (_, { id }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'GetTripDetail', { trip_id: id });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to retrieve trip');
       }
     },
     tripDetail: async (_, { id }) => {
@@ -91,7 +106,26 @@ export const resolvers = {
       } catch (error) {
         throw toGraphQLError(error, 'Failed to retrieve trip details');
       }
-    }
+    },
+    bookingStatus: async (_, { bookingCode, email }) => {
+      if (!email) throw new GraphQLError('Email is required to protect booking information', { extensions: { code: 'BAD_USER_INPUT' } });
+      try {
+        const booking = await callUnary(grpcClients.booking, 'GetBooking', { booking_code: bookingCode, passenger_email: email });
+        return { bookingCode: booking.booking_code, tripId: booking.trip_id, status: booking.status, seatNumbers: booking.seat_numbers };
+      } catch (error) { throw toGraphQLError(error, 'Cannot retrieve booking'); }
+    },
+    revenueSummary: async (_, { days = 30 }) => {
+      const response = await fetch(`${analyticsUrl}/analytics/revenue?days=${days}`);
+      if (!response.ok) return [];
+      const body = await response.json();
+      return body.data.map((row) => ({ label: row.day, value: Number(row.revenue) }));
+    },
+    popularRoutes: async () => {
+      const response = await fetch(`${analyticsUrl}/analytics/popular-routes`);
+      if (!response.ok) return [];
+      const body = await response.json();
+      return body.data.map((row) => ({ label: row.route, value: Number(row.searches) }));
+    },
   },
   Mutation: {
     register: async (_, { name, email, password, role }) => {

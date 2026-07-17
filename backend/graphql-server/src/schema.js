@@ -11,6 +11,9 @@ export const typeDefs = `#graphql
     user: User!
   }
 
+  type BookingStatus { bookingCode: String!, tripId: String!, status: String!, seatNumbers: [String!]! }
+  type AnalyticsPoint { label: String!, value: Float! }
+
   type Route {
     id: ID!
     origin: String!
@@ -30,6 +33,8 @@ export const typeDefs = `#graphql
     id: ID!
     route: Route!
     vehicle: Vehicle!
+    origin: String
+    destination: String
     departureTime: String!
     arrivalTime: String!
     price: Float!
@@ -40,8 +45,12 @@ export const typeDefs = `#graphql
 
   type Query {
     me: User
-    searchTrips(origin: String!, destination: String!, date: String!): [Trip!]!
+    searchTrips(origin: String!, destination: String!, date: String): [Trip!]!
+    trip(id: ID!): Trip
     tripDetail(id: ID!): Trip
+    bookingStatus(bookingCode: String!, email: String!): BookingStatus
+    revenueSummary(days: Int): [AnalyticsPoint!]!
+    popularRoutes: [AnalyticsPoint!]!
   }
 
   type Mutation {

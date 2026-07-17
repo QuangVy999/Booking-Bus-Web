@@ -5,17 +5,21 @@ import protoLoader from '@grpc/proto-loader';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PROTO_PATH = path.resolve(__dirname, '../../protos/user.proto');
+const USER_PROTO_PATH = path.resolve(__dirname, '../../protos/user.proto');
+const BOOKING_PROTO_PATH = path.resolve(__dirname, '../../protos/booking.proto');
 
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+const loadOptions = {
   keepCase: true,
   longs: String,
   enums: String,
   defaults: true,
   oneofs: true
-});
+};
+const packageDefinition = protoLoader.loadSync(USER_PROTO_PATH, loadOptions);
+const bookingDefinition = protoLoader.loadSync(BOOKING_PROTO_PATH, loadOptions);
 
 const userProto = grpc.loadPackageDefinition(packageDefinition).user;
+const bookingProto = grpc.loadPackageDefinition(bookingDefinition).booking;
 
 const CATALOG_PROTO_PATH = path.resolve(__dirname, '../../protos/catalog.proto');
 const catalogPackageDefinition = protoLoader.loadSync(CATALOG_PROTO_PATH, {
@@ -29,6 +33,10 @@ const catalogProto = grpc.loadPackageDefinition(catalogPackageDefinition).catalo
 
 const userClient = new userProto.UserService(
   process.env.USER_SERVICE_ADDR || 'localhost:50051',
+  grpc.credentials.createInsecure()
+);
+const bookingClient = new bookingProto.BookingService(
+  process.env.BOOKING_SERVICE_ADDR || 'localhost:50053',
   grpc.credentials.createInsecure()
 );
 
@@ -51,5 +59,6 @@ export function callUnary(client, method, request, timeoutMs = 2500) {
 
 export const grpcClients = {
   user: userClient,
-  catalog: catalogClient
+  catalog: catalogClient,
+  booking: bookingClient
 };

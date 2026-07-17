@@ -12,7 +12,7 @@ import { Trip } from "@/lib/ai/types";
 // Sử dụng kiểu any cho message hoặc ép sang cấu trúc đối tượng cụ thể phù hợp với UI JSON
 function renderMessagePart(
   message: {
-    content: string;
+    content?: string;
     parts?: Array<{
       type: string;
       text?: string;
@@ -25,7 +25,7 @@ function renderMessagePart(
   if (!message.parts) {
     return (
       <span key={index} className="whitespace-pre-wrap">
-        {message.content}
+        {message.content ?? ""}
       </span>
     );
   }
