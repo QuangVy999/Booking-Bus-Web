@@ -9,7 +9,7 @@ type GraphQLResponse<TData> = {
 type GraphQLRequestOptions<TVariables> = {
   query: string;
   variables?: TVariables;
-  token?: string;
+  token?: string | null;
   cache?: RequestCache;
   next?: {
     revalidate?: number;
@@ -21,7 +21,7 @@ const GRAPHQL_ENDPOINT = process.env.BACKEND_GRAPHQL_URL ?? "http://localhost:40
 
 export async function graphqlRequest<
   TData,
-  TVariables extends Record<string, unknown> = Record<string, never>,
+  TVariables extends Record<string, unknown> = any,
 >(options: GraphQLRequestOptions<TVariables>): Promise<TData> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",

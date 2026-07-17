@@ -152,16 +152,41 @@ export function createSeatInventoryService(repository, redisClient) {
         throw new Error('INVALID_ARGUMENT: trip_id and seat_numbers are required');
       }
 
-      // 1. Update status to BLOCKED in DB
+      // 1. Check if any seat is already booked in database
+      const dbSeats = await repository.findSeatsByNumbers(tripId, seatNumbers);
+      for (const seat of dbSeats) {
+        if (seat.status === 'BOOKED') {
+          return {
+            success: false,
+            message: `Seat ${seat.seat_number} is already booked and cannot be blocked`
+          };
+        }
+      }
+
+      // 2. Update status to BLOCKED in DB
       await repository.updateSeatsStatus(tripId, seatNumbers, 'BLOCKED');
 
-      // 2. Remove locks from Redis if they were held
+      // 3. Remove locks from Redis if they were held
       const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
       await redisClient.del(...keys);
 
       return {
         success: true,
         message: 'Seats blocked successfully'
+      };
+    },
+
+    async unblockSeats(tripId, seatNumbers) {
+      if (!tripId || !seatNumbers || seatNumbers.length === 0) {
+        throw new Error('INVALID_ARGUMENT: trip_id and seat_numbers are required');
+      }
+
+      // 1. Update status to AVAILABLE in DB
+      await repository.updateSeatsStatus(tripId, seatNumbers, 'AVAILABLE');
+
+      return {
+        success: true,
+        message: 'Seats unblocked successfully'
       };
     }
   };

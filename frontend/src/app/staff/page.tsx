@@ -1,5 +1,7 @@
 import { getCurrentStudent } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
+import { getTrips } from "@/app/actions/trip";
+import StaffPageClient from "./StaffPageClient";
 
 export default async function StaffPage() {
   const student = await getCurrentStudent();
@@ -8,17 +10,17 @@ export default async function StaffPage() {
     redirect("/login");
   }
 
-  return (
-    <div className="mx-auto flex max-w-4xl flex-col px-4 py-12">
-      <h1 className="text-3xl font-bold text-orange-600">Trang Nhân Viên (Check-in Staff)</h1>
-      <p className="mt-2 text-gray-600">
-        Xin chào <span className="font-medium text-orange-600">{student.name}</span>. Bạn có thể tra cứu vé và check-in hành khách tại đây.
-      </p>
+  if (student.role !== 'Admin' && student.role !== 'Check-in Staff') {
+    redirect("/");
+  }
 
-      <div className="mt-8 p-6 bg-white shadow rounded-lg border">
-        <h2 className="text-xl font-semibold mb-4">Quản lý Check-in</h2>
-        <p>Tính năng đang được phát triển...</p>
-      </div>
+  // Fetch initial trips list for check-in dropdown
+  const tripRes = await getTrips();
+  const trips = tripRes.success && tripRes.trips ? tripRes.trips : [];
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <StaffPageClient initialTrips={trips} student={student} />
     </div>
   );
 }
