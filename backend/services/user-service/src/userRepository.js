@@ -9,6 +9,16 @@ export function createUserRepository(db) {
     },
     async findById(id) {
       return db('users').where({ id }).first();
+    },
+    async addSavedPassenger(passenger) {
+      const [inserted] = await db('saved_passengers').insert(passenger).returning('*');
+      return inserted;
+    },
+    async getSavedPassengers(userId) {
+      return db('saved_passengers').where({ user_id: userId }).orderBy('id', 'asc');
+    },
+    async deleteSavedPassenger(id) {
+      return db('saved_passengers').where({ id }).del();
     }
   };
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { confirmPaymentAction } from '@/app/actions/booking';
+import { confirmPaymentAction, cancelBookingAction } from '@/app/actions/booking';
 import { toast, Toaster } from 'sonner';
 import { CreditCard, XCircle, CheckCircle, Clock, Calendar, Mail, User, Bus } from 'lucide-react';
 import Link from 'next/link';
@@ -62,6 +62,28 @@ export default function ConfirmationPageClient({ booking, trip }: ConfirmationPa
       }
     } catch (err: any) {
       toast.error('Có lỗi xảy ra khi gọi API thanh toán.');
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleCancelBooking = async () => {
+    if (!confirm('Bạn có chắc chắn muốn hủy vé này không? Hành động này không thể hoàn tác và ghế sẽ được giải phóng.')) {
+      return;
+    }
+    
+    setIsPending(true);
+    toast.info('Đang xử lý hủy vé...');
+    try {
+      const res = await cancelBookingAction(booking.bookingId);
+      if (res.success) {
+        toast.success('Hủy vé thành công!');
+        router.refresh();
+      } else {
+        toast.error(`Hủy vé thất bại: ${res.message}`);
+      }
+    } catch (err: any) {
+      toast.error('Có lỗi xảy ra khi gọi API hủy vé.');
     } finally {
       setIsPending(false);
     }
@@ -191,17 +213,29 @@ export default function ConfirmationPageClient({ booking, trip }: ConfirmationPa
         </div>
       </div>
 
-      {/* Action buttons (only show if PENDING_PAYMENT) */}
-      {booking.status === 'PENDING_PAYMENT' && (
-        <div className="flex flex-col gap-4">
+      {/* Action buttons (only show if PENDING_PAYMENT or PAID) */}
+      {(booking.status === 'PENDING_PAYMENT' || booking.status === 'PAID') && (
+        <div className="flex flex-col gap-3">
+          {booking.status === 'PENDING_PAYMENT' && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={handleConfirmPayment}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-orange-500/10 transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed text-sm uppercase tracking-wider"
+            >
+              <CreditCard className="w-4.5 h-4.5" />
+              <span>Thanh toán thành công (Simulate)</span>
+            </button>
+          )}
+          
           <button
             type="button"
             disabled={isPending}
-            onClick={handleConfirmPayment}
-            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-orange-500/10 transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed text-sm uppercase tracking-wider"
+            onClick={handleCancelBooking}
+            className="w-full bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 disabled:bg-slate-50 disabled:text-slate-400 disabled:border-slate-200 font-bold py-3.5 px-6 rounded-xl transition-all duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:cursor-not-allowed text-sm uppercase tracking-wider"
           >
-            <CreditCard className="w-4.5 h-4.5" />
-            <span>Thanh toán thành công (Simulate)</span>
+            <XCircle className="w-4.5 h-4.5" />
+            <span>Hủy vé</span>
           </button>
         </div>
       )}

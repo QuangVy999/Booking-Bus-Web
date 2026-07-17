@@ -61,6 +61,34 @@ export function createUserService(userRepository) {
         throw err;
       }
       return user;
+    },
+    
+    async addSavedPassenger({ userId, name, email, phone }) {
+      if (!userId || !name || !email || !phone) {
+        const err = new Error('User ID, name, email and phone are required');
+        err.code = 'INVALID_ARGUMENT';
+        throw err;
+      }
+      return await userRepository.addSavedPassenger({ user_id: userId, name, email, phone });
+    },
+    
+    async getSavedPassengers(userId) {
+      if (!userId) {
+        const err = new Error('User ID is required');
+        err.code = 'INVALID_ARGUMENT';
+        throw err;
+      }
+      return await userRepository.getSavedPassengers(userId);
+    },
+    
+    async deleteSavedPassenger(id) {
+      if (!id) {
+        const err = new Error('ID is required');
+        err.code = 'INVALID_ARGUMENT';
+        throw err;
+      }
+      await userRepository.deleteSavedPassenger(id);
+      return true;
     }
   };
 }

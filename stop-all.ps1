@@ -1,0 +1,1 @@
+Get-CimInstance Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and ($_.CommandLine -match 'src[\\/]server.js' -or $_.CommandLine -match 'next' -or $_.CommandLine -match 'npm start') } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }

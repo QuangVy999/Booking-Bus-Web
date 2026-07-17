@@ -30,7 +30,10 @@ export function createCatalogGrpcHandlers(catalogService) {
         const { origin, destination, date } = call.request;
         const result = await catalogService.searchTrips(origin, destination, date);
         
-        callback(null, { trips: result });
+        callback(null, { 
+          trips: result.trips,
+          suggested_date: result.suggestedDate || ""
+        });
       } catch (error) {
         callback(toGrpcError(error));
       }

@@ -79,27 +79,29 @@ export default async function Home({
   const isSearching = origin && destination && date;
 
   let trips = [];
+  let suggestedDate: string | null = null;
   let errorMsg = "";
 
   if (isSearching) {
     // Log search event to Analytics Service (Kafka) in background
-    fetch(`${process.env.ANALYTICS_SERVICE_URL || "http://localhost:4010"}/events/search`, {
+    fetch(`${process.env.ANALYTICS_SERVICE_URL || "http://127.0.0.1:4010"}/events/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ origin, destination, date })
     }).catch(() => {});
 
-    try {
-      const data = await graphqlRequest<{ searchTrips: any[] }, any>({
-        query: SEARCH_TRIPS_QUERY,
-        variables: {
-          origin: origin as string,
-          destination: destination as string,
-          date: date as string,
-        },
-      });
-      trips = data.searchTrips;
-    } catch (err: any) {
+      try {
+        const data = await graphqlRequest<{ searchTrips: { trips: any[], suggestedDate: string | null } }, any>({
+          query: SEARCH_TRIPS_QUERY,
+          variables: {
+            origin: origin as string,
+            destination: destination as string,
+            date: date as string,
+          },
+        });
+        trips = data.searchTrips.trips || [];
+        suggestedDate = data.searchTrips.suggestedDate || null;
+      } catch (err: any) {
       console.error("Failed to query trips:", err);
       errorMsg = "Có lỗi xảy ra khi kết nối tới hệ thống Gateway.";
     }
@@ -147,6 +149,7 @@ export default async function Home({
           ) : (
             <TripSearchResults
               trips={trips}
+              suggestedDate={suggestedDate}
               origin={origin as string}
               destination={destination as string}
               date={date as string}

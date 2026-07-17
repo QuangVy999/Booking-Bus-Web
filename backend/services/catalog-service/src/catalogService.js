@@ -100,7 +100,34 @@ export function createCatalogService(repository) {
         console.error('Redis write error:', err);
       }
 
-      return trips;
+      let suggestedDate = null;
+      if (trips.length === 0) {
+        // Find the closest future date with trips for this route
+        let closestTrip = null;
+        let minDiff = Infinity;
+        const targetMs = new Date(targetDate).getTime();
+        
+        for (const t of allTrips) {
+          const route = routesMap.get(t.route_id);
+          if (!route) continue;
+          if (!route.name.includes(origin) || !route.name.includes(destination)) continue;
+          
+          const tripMs = new Date(t.departure_time).getTime();
+          // Find any date strictly after today, or closest to target
+          if (tripMs >= targetMs) {
+            const diff = tripMs - targetMs;
+            if (diff >= 0 && diff < minDiff) {
+              minDiff = diff;
+              closestTrip = t;
+            }
+          }
+        }
+        if (closestTrip) {
+          suggestedDate = new Date(closestTrip.departure_time).toISOString().split('T')[0];
+        }
+      }
+
+      return { trips, suggestedDate };
     },
 
     async getTripDetail(tripId) {

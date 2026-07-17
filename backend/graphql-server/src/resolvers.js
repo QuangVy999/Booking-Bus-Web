@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { grpcClients, callUnary } from './grpcClients.js';
+import { pubsub } from './pubsub.js';
 
 const trips = [
   { id: 'TRIP-001', origin: 'Sài Gòn', destination: 'Đà Lạt', route: 'Sài Gòn → Đà Lạt', departureTime: '2026-07-18T07:00:00+07:00', price: 250000, availableSeats: 25 },
@@ -135,7 +136,10 @@ export const resolvers = {
       try {
         const searchDate = date || new Date().toISOString().split('T')[0];
         const response = await callUnary(grpcClients.catalog, 'SearchTrips', { origin, destination, date: searchDate });
-        return (response.trips || []).map(mapTrip);
+        return {
+          trips: (response.trips || []).map(mapTrip),
+          suggestedDate: response.suggested_date || null
+        };
       } catch (error) {
         throw toGraphQLError(error, 'Failed to search trips');
       }
@@ -176,6 +180,13 @@ export const resolvers = {
       if (!response.ok) return [];
       const body = await response.json();
       return body.data.map((row) => ({ label: row.route, value: Number(row.searches) }));
+    },
+    savedPassengers: async (_, __, context) => {
+      requireRole(context, ['Registered Customer', 'Admin']);
+      try {
+        const response = await callUnary(grpcClients.user, 'GetSavedPassengers', { user_id: context.currentUser.sub });
+        return response.passengers || [];
+      } catch (error) { throw toGraphQLError(error, 'Cannot get saved passengers'); }
     }
   },
   Mutation: {
@@ -192,6 +203,27 @@ export const resolvers = {
         const response = await callUnary(grpcClients.user, 'Login', { email, password });
         return response;
       } catch (error) { throw toGraphQLError(error, 'Cannot login'); }
+    },
+    
+    addSavedPassenger: async (_, { name, email, phone }, context) => {
+      requireRole(context, ['Registered Customer', 'Admin']);
+      try {
+        const response = await callUnary(grpcClients.user, 'AddSavedPassenger', { 
+          user_id: context.currentUser.sub,
+          name, 
+          email, 
+          phone 
+        });
+        return response.passenger;
+      } catch (error) { throw toGraphQLError(error, 'Cannot add passenger'); }
+    },
+
+    deleteSavedPassenger: async (_, { id }, context) => {
+      requireRole(context, ['Registered Customer', 'Admin']);
+      try {
+        const response = await callUnary(grpcClients.user, 'DeleteSavedPassenger', { id });
+        return { success: response.success };
+      } catch (error) { throw toGraphQLError(error, 'Cannot delete passenger'); }
     },
 
     createStop: async (_, args, context) => {
@@ -313,5 +345,11 @@ export const resolvers = {
         throw toGraphQLError(error, 'Failed to create trip');
       }
     }
+  },
+  Subscription: {
+    seatUpdated: {
+      subscribe: () => pubsub.asyncIterableIterator(['SEAT_UPDATED'])
+    }
   }
 };
+

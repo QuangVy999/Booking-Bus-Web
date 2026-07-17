@@ -1,6 +1,6 @@
 export async function POST(request: Request) {
   const body = await request.json();
-  const baseUrl = process.env.ANALYTICS_SERVICE_URL || "http://localhost:4010";
+  const baseUrl = process.env.ANALYTICS_SERVICE_URL || "http://127.0.0.1:4010";
   const response = await fetch(`${baseUrl}/events/search`, {
     method: "POST",
     headers: { "content-type": "application/json" },

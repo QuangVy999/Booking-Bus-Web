@@ -8,6 +8,7 @@ service BookingService {
   rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
   rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
   rpc GetBookingsByTrip(GetBookingsByTripRequest) returns (GetBookingsByTripResponse);
+  rpc GetBookingsByEmail(GetBookingsByEmailRequest) returns (GetBookingsByEmailResponse);
   rpc CheckInBooking(CheckInBookingRequest) returns (CheckInBookingResponse);
 }
 
@@ -65,6 +66,14 @@ message GetBookingsByTripRequest {
 }
 
 message GetBookingsByTripResponse {
+  repeated GetBookingResponse bookings = 1;
+}
+
+message GetBookingsByEmailRequest {
+  string email = 1;
+}
+
+message GetBookingsByEmailResponse {
   repeated GetBookingResponse bookings = 1;
 }
 
