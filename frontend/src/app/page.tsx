@@ -84,7 +84,7 @@ export default async function Home({
 
         <div className="relative max-w-2xl space-y-4">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-extrabold uppercase tracking-wider backdrop-blur-sm">
-            🚍 FUTA BUS LINES DEMO
+            🚍 VÉ XE RẺ
           </span>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
             Đặt vé xe khách nhanh chóng & an toàn cùng AI
