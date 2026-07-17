@@ -82,7 +82,7 @@ export const resolvers = {
         return null;
       }
     },
-<<<<<<< HEAD
+
     getStops: async () => {
       try {
         const response = await callUnary(grpcClients.trip, 'GetStops', {});
