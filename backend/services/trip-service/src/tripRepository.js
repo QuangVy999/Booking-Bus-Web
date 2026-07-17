@@ -23,24 +23,29 @@ export const tripRepository = {
   async createRoute(data) {
     const startStop = await db("stops").where({ id: data.start_stop_id }).first();
     const endStop = await db("stops").where({ id: data.end_stop_id }).first();
-    const getCityName = (stopName) => {
-      if (stopName.includes("TP.HCM")) return "TP.HCM";
-      if (stopName.includes("Cần Thơ")) return "Cần Thơ";
-      if (stopName.includes("Đà Lạt")) return "Đà Lạt";
-      if (stopName.includes("Nha Trang")) return "Nha Trang";
-      if (stopName.includes("Hà Nội")) return "Hà Nội";
-      if (stopName.includes("Hải Phòng")) return "Hải Phòng";
-      return stopName;
+    const getCityName = (stop) => {
+      if (!stop) return "";
+      const text = `${stop.name} ${stop.address}`;
+      if (text.includes("TP.HCM") || text.includes("Hồ Chí Minh")) return "TP.HCM";
+      if (text.includes("Cần Thơ")) return "Cần Thơ";
+      if (text.includes("Đà Lạt")) return "Đà Lạt";
+      if (text.includes("Nha Trang")) return "Nha Trang";
+      if (text.includes("Hà Nội")) return "Hà Nội";
+      if (text.includes("Hải Phòng")) return "Hải Phòng";
+      return stop.name;
     };
-    const origin = startStop ? getCityName(startStop.name) : "TP.HCM";
-    const destination = endStop ? getCityName(endStop.name) : "Đà Lạt";
+    const origin = startStop ? getCityName(startStop) : "TP.HCM";
+    const destination = endStop ? getCityName(endStop) : "Đà Lạt";
     const routeData = {
-      ...data,
+      name: data.name,
+      start_stop_id: data.start_stop_id,
+      end_stop_id: data.end_stop_id,
       origin,
       destination,
       distance: 300,
       duration: "6 giờ"
     };
+    if (data.id) routeData.id = data.id;
     const [route] = await db("routes").insert(routeData).returning("*");
     return route;
   },
@@ -51,17 +56,19 @@ export const tripRepository = {
       const endId = data.end_stop_id || (await db("routes").where({ id }).first())?.end_stop_id;
       const startStop = await db("stops").where({ id: startId }).first();
       const endStop = await db("stops").where({ id: endId }).first();
-      const getCityName = (stopName) => {
-        if (stopName.includes("TP.HCM")) return "TP.HCM";
-        if (stopName.includes("Cần Thơ")) return "Cần Thơ";
-        if (stopName.includes("Đà Lạt")) return "Đà Lạt";
-        if (stopName.includes("Nha Trang")) return "Nha Trang";
-        if (stopName.includes("Hà Nội")) return "Hà Nội";
-        if (stopName.includes("Hải Phòng")) return "Hải Phòng";
-        return stopName;
+      const getCityName = (stop) => {
+        if (!stop) return "";
+        const text = `${stop.name} ${stop.address}`;
+        if (text.includes("TP.HCM") || text.includes("Hồ Chí Minh")) return "TP.HCM";
+        if (text.includes("Cần Thơ")) return "Cần Thơ";
+        if (text.includes("Đà Lạt")) return "Đà Lạt";
+        if (text.includes("Nha Trang")) return "Nha Trang";
+        if (text.includes("Hà Nội")) return "Hà Nội";
+        if (text.includes("Hải Phòng")) return "Hải Phòng";
+        return stop.name;
       };
-      if (startStop) routeData.origin = getCityName(startStop.name);
-      if (endStop) routeData.destination = getCityName(endStop.name);
+      if (startStop) routeData.origin = getCityName(startStop);
+      if (endStop) routeData.destination = getCityName(endStop);
     }
     const [route] = await db("routes").where({ id }).update(routeData).returning("*");
     return route;
