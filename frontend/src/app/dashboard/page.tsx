@@ -1,12 +1,19 @@
-import { getCurrentStudent } from "@/lib/auth/session";
+import { getCurrentStudent, getAuthToken } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { TrendingUp, Search, Percent, MapPin, Ticket } from "lucide-react";
 
 const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://127.0.0.1:4010';
 
-async function readAnalytics(path: string) {
+async function readAnalytics(path: string, token?: string | null) {
   try {
-    const response = await fetch(`${analyticsUrl}${path}`, { cache: 'no-store' });
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${analyticsUrl}${path}`, { 
+      headers,
+      cache: 'no-store' 
+    });
     return response.ok ? response.json() : null;
   } catch {
     return null;
@@ -19,11 +26,12 @@ export default async function DashboardPage() {
   if (!student) redirect('/login');
   if (student.role !== 'Admin') redirect('/');
 
+  const token = await getAuthToken();
   const [revenue, routes, popular, conversion] = await Promise.all([
-    readAnalytics('/analytics/revenue?days=30'),
-    readAnalytics('/analytics/bookings-by-route'),
-    readAnalytics('/analytics/popular-routes'),
-    readAnalytics('/analytics/conversion')
+    readAnalytics('/analytics/revenue?days=30', token),
+    readAnalytics('/analytics/bookings-by-route', token),
+    readAnalytics('/analytics/popular-routes', token),
+    readAnalytics('/analytics/conversion', token)
   ]);
 
   const totalRevenue = revenue?.data?.reduce((sum: number, row: { revenue: string }) => sum + Number(row.revenue), 0) || 0;
