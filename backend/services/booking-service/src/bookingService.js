@@ -156,6 +156,44 @@ export function createBookingService(repository, seatInventoryGateway) {
       }
 
       throw new Error('INVALID_ARGUMENT: Either bookingId or (bookingCode and passengerEmail) are required');
+    },
+
+    async getBookingsByTrip(tripId) {
+      if (!tripId) {
+        throw new Error('INVALID_ARGUMENT: trip_id is required');
+      }
+      return repository.getBookingsByTrip(tripId);
+    },
+
+    async checkInBooking(bookingCode) {
+      if (!bookingCode) {
+        throw new Error('INVALID_ARGUMENT: booking_code is required');
+      }
+
+      const booking = await repository.getBookingByCode(bookingCode);
+      if (!booking) {
+        throw new Error('NOT_FOUND: Booking not found');
+      }
+
+      if (booking.status !== 'PAID') {
+        throw new Error(`FAILED_PRECONDITION: Cannot check-in a booking with status ${booking.status}`);
+      }
+
+      await repository.updateBookingStatus(booking.id, 'CHECKED_IN');
+
+      const eventMessage = {
+        bookingId: booking.id,
+        bookingCode: booking.booking_code,
+        tripId: booking.trip_id,
+        timestamp: Date.now()
+      };
+      await publishBookingEvent('booking.checked_in', eventMessage);
+
+      return {
+        success: true,
+        message: 'Check-in successful',
+        newStatus: 'CHECKED_IN'
+      };
     }
   };
 }

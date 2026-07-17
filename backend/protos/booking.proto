@@ -7,6 +7,8 @@ service BookingService {
   rpc ConfirmPayment(ConfirmPaymentRequest) returns (ConfirmPaymentResponse);
   rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
   rpc GetBooking(GetBookingRequest) returns (GetBookingResponse);
+  rpc GetBookingsByTrip(GetBookingsByTripRequest) returns (GetBookingsByTripResponse);
+  rpc CheckInBooking(CheckInBookingRequest) returns (CheckInBookingResponse);
 }
 
 message CreateBookingRequest {
@@ -56,4 +58,22 @@ message GetBookingResponse {
   string passenger_name = 5;
   string passenger_email = 6;
   string status = 7;
+}
+
+message GetBookingsByTripRequest {
+  string trip_id = 1;
+}
+
+message GetBookingsByTripResponse {
+  repeated GetBookingResponse bookings = 1;
+}
+
+message CheckInBookingRequest {
+  string booking_code = 1;
+}
+
+message CheckInBookingResponse {
+  bool success = 1;
+  string message = 2;
+  string new_status = 3;
 }

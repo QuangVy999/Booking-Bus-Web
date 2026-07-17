@@ -7,6 +7,7 @@ service SeatInventoryService {
   rpc ConfirmSeats(ConfirmSeatsRequest) returns (ConfirmSeatsResponse);
   rpc ReleaseSeats(ReleaseSeatsRequest) returns (ReleaseSeatsResponse);
   rpc GetSeatInventory(GetSeatInventoryRequest) returns (GetSeatInventoryResponse);
+  rpc BlockSeats(BlockSeatsRequest) returns (BlockSeatsResponse);
 }
 
 message Seat {
@@ -54,4 +55,14 @@ message GetSeatInventoryRequest {
 message GetSeatInventoryResponse {
   string trip_id = 1;
   repeated Seat seats = 2;
+}
+
+message BlockSeatsRequest {
+  string trip_id = 1;
+  repeated string seat_numbers = 2;
+}
+
+message BlockSeatsResponse {
+  bool success = 1;
+  string message = 2;
 }

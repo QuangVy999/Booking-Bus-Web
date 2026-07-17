@@ -75,9 +75,27 @@ services:
     volumes:
       - user_db_data:/var/lib/postgresql/data
 
+  trip-db:
+    image: postgres:15-alpine
+    container_name: trip_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: trip_db
+    ports:
+      - "15435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d trip_db"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+    volumes:
+      - trip_db_data:/var/lib/postgresql/data
+
 volumes:
   db_data_p3:
   redis_data_p3:
   rabbitmq_data_p3:
   user_db_data:
   analytics_db_data_p4:
+  trip_db_data:

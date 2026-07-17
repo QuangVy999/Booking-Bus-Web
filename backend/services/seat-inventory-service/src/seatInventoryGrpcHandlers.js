@@ -79,6 +79,20 @@ export function createSeatInventoryGrpcHandlers(seatInventoryService) {
       } catch (error) {
         callback(toGrpcError(error));
       }
+    },
+
+    async blockSeats(call, callback) {
+      try {
+        const { trip_id, seat_numbers } = call.request;
+        const result = await seatInventoryService.blockSeats(trip_id, seat_numbers);
+        
+        callback(null, {
+          success: result.success,
+          message: result.message
+        });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
     }
   };
 }
