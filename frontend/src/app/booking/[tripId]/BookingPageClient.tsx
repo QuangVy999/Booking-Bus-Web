@@ -88,34 +88,17 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans pb-16">
       <Toaster position="top-right" richColors />
 
-      {/* FUTA Style Header Banner */}
-      <div className="bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center text-xs font-semibold border-b border-orange-500/20">
-          <div className="flex items-center gap-4">
-            <span className="bg-orange-700/60 px-2 py-1 rounded text-white flex items-center gap-1">
-              🇻🇳 VI
-            </span>
-            <span className="hover:underline cursor-pointer">Tải ứng dụng</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-orange-700/50 flex items-center justify-center text-[10px]">👤</span>
-            <span className="hover:underline cursor-pointer">Trần Lê Gia Huy</span>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 py-8 text-center space-y-2 relative">
-          <Link href="/" className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-orange-100 hover:text-white flex items-center gap-1.5 font-bold transition-all">
-            <span>Quay lại</span>
+      {/* Main Content Grid */}
+      <div className="max-w-6xl mx-auto px-4 mt-8 space-y-6">
+        {/* Navigation & Page Title */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-600 hover:text-orange-700 transition-colors">
+            <span>&larr; Quay lại trang chủ</span>
           </Link>
-          
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight uppercase flex items-center justify-center gap-2">
-            <span>Chuyến xe {tripId}</span>
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">
+            Chuyến xe {tripId}
           </h1>
         </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="max-w-6xl mx-auto px-4 mt-8">
         <form action={formAction} className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
           <input type="hidden" name="tripId" value={tripId} />
           <input type="hidden" name="seatNumbers" value={selectedSeats.join(',')} />
