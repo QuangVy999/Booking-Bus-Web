@@ -24,8 +24,8 @@ export const LOGIN_MUTATION = `
 `;
 
 export const REGISTER_MUTATION = `
-  mutation Register($name: String!, $email: String!, $password: String!) {
-    register(name: $name, email: $email, password: $password) {
+  mutation Register($name: String!, $email: String!, $password: String!, $role: String) {
+    register(name: $name, email: $email, password: $password, role: $role) {
       token
       user {
         id

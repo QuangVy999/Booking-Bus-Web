@@ -20,7 +20,13 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(2, "Tên phải có ít nhất 2 ký tự."),
   email: z.string().email("Email không hợp lệ."),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự."),
+  password: z.string()
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự.")
+    .regex(/[A-Z]/, "Ít nhất 1 chữ hoa")
+    .regex(/[a-z]/, "Ít nhất 1 chữ thường")
+    .regex(/[0-9]/, "Ít nhất 1 số")
+    .regex(/[^A-Za-z0-9]/, "Ít nhất 1 ký tự đặc biệt"),
+  role: z.string().optional(),
 });
 
 export async function loginAction(
@@ -70,6 +76,7 @@ export async function registerAction(
     name: String(formData.get("name") ?? ""),
     email: String(formData.get("email") ?? ""),
     password: String(formData.get("password") ?? ""),
+    role: formData.get("role") ? String(formData.get("role")) : undefined,
   });
 
   if (!parsed.success) {

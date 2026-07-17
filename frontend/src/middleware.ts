@@ -4,25 +4,37 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get(process.env.AUTH_COOKIE_NAME ?? "access_token")?.value;
-  const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
+  const path = request.nextUrl.pathname;
+  
+  // Public AI Chatbox under dashboard
+  if (path.startsWith("/dashboard/ai-advisor") || path.startsWith("/api/chat")) {
+    return NextResponse.next();
+  }
 
-  if (isDashboard) {
+  const isDashboard = path.startsWith("/dashboard");
+  const isStaffRoute = path.startsWith("/staff");
+  const isProfileRoute = path.startsWith("/profile");
+
+  if (isDashboard || isStaffRoute || isProfileRoute) {
     if (!token) {
       const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("next", request.nextUrl.pathname);
+      loginUrl.searchParams.set("next", path);
       return NextResponse.redirect(loginUrl);
     }
 
     try {
-      // Basic decoding to check role. This does not verify the signature,
-      // but it's okay for an initial check before the server component does a secure check.
       const payload: any = jwtDecode(token);
-      if (payload.role !== "Admin" && payload.role !== "Staff") {
-        // Redirect non-admins away from dashboard
-        return NextResponse.redirect(new URL("/profile", request.url));
+      
+      if (isDashboard && payload.role !== "Admin") {
+        return NextResponse.redirect(new URL("/", request.url));
       }
+      
+      if (isStaffRoute && payload.role !== "Check-in Staff" && payload.role !== "Admin") {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
+
+      // Profile is allowed for all authenticated users
     } catch (e) {
-      // Invalid token
       const loginUrl = new URL("/login", request.url);
       return NextResponse.redirect(loginUrl);
     }
@@ -32,5 +44,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/staff/:path*", "/profile/:path*"],
 };
