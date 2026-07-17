@@ -52,24 +52,11 @@ export function RegisterForm() {
           id="password"
           name="password"
           type="password"
-          placeholder="Ít nhất 6 ký tự"
+          placeholder="Ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt"
           autoComplete="new-password"
           required
           className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500"
         />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="role" className="block text-sm font-medium">Vai trò</label>
-        <select
-          id="role"
-          name="role"
-          className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500 bg-white"
-        >
-          <option value="Registered">Người dùng thường (Registered)</option>
-          <option value="Admin">Quản trị viên (Admin)</option>
-          <option value="Staff">Nhân viên (Staff)</option>
-        </select>
       </div>
 
       <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition-colors font-medium" disabled={isPending}>
