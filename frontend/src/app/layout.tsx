@@ -39,7 +39,6 @@ export default async function RootLayout({
         <header className="bg-orange-500 text-white py-4 px-6 shadow-md flex justify-between items-center">
           <div className="flex items-center gap-4">
             <span className="font-bold text-xl tracking-tight">VÉ XE RẺ</span>
-            <span className="text-sm opacity-80 cursor-pointer hover:opacity-100 transition">Tải ứng dụng</span>
           </div>
           {user ? (
             <div className="flex items-center gap-4">
