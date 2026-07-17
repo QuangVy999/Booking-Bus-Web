@@ -179,6 +179,13 @@ export function createBookingService(repository, seatInventoryGateway, tripGatew
       return repository.getBookingsByTrip(tripId);
     },
 
+    async getBookingsByEmail(email) {
+      if (!email) {
+        throw new Error('INVALID_ARGUMENT: email is required');
+      }
+      return repository.getBookingsByEmail(email);
+    },
+
     async checkInBooking(bookingCode) {
       if (!bookingCode) {
         throw new Error('INVALID_ARGUMENT: booking_code is required');

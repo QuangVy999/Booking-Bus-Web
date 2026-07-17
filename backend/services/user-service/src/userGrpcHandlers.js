@@ -44,6 +44,33 @@ export function createUserGrpcHandlers(userService) {
         console.error("UserService GetProfile failed:", error);
         callback(toGrpcError(error));
       }
+    },
+    async AddSavedPassenger(call, callback) {
+      try {
+        const { user_id, name, email, phone } = call.request;
+        const passenger = await userService.addSavedPassenger({ userId: user_id, name, email, phone });
+        callback(null, { passenger });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
+    },
+    async GetSavedPassengers(call, callback) {
+      try {
+        const { user_id } = call.request;
+        const passengers = await userService.getSavedPassengers(user_id);
+        callback(null, { passengers });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
+    },
+    async DeleteSavedPassenger(call, callback) {
+      try {
+        const { id } = call.request;
+        await userService.deleteSavedPassenger(id);
+        callback(null, { success: true });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
     }
   };
 }

@@ -2,7 +2,7 @@ import { tool } from "ai";
 import { z } from "zod";
 
 const graphqlUrl =
-  process.env.BACKEND_GRAPHQL_URL || "http://localhost:4000/graphql";
+  process.env.BACKEND_GRAPHQL_URL || "http://127.0.0.1:4000/graphql";
 async function graphQL(query: string, variables: Record<string, unknown>) {
   const response = await fetch(graphqlUrl, {
     method: "POST",
@@ -28,7 +28,7 @@ export const busTools = {
     }),
     execute: async ({ origin, destination, date }) => {
       fetch(
-        `${process.env.ANALYTICS_SERVICE_URL || "http://localhost:4010"}/events/search`,
+        `${process.env.ANALYTICS_SERVICE_URL || "http://127.0.0.1:4010"}/events/search`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },

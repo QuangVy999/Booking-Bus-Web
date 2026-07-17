@@ -2,7 +2,7 @@ import { getCurrentStudent } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 import { TrendingUp, Search, Percent, MapPin, Ticket } from "lucide-react";
 
-const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://localhost:4010';
+const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://127.0.0.1:4010';
 
 async function readAnalytics(path: string) {
   try {

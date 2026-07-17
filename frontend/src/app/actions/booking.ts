@@ -146,3 +146,25 @@ export async function getBookingByCodeAction(bookingCode: string) {
     return { success: false, error: error.message || 'Failed to fetch booking details' };
   }
 }
+
+// Action: Fetch booking details by email
+export async function getBookingsByEmailAction(email: string) {
+  try {
+    const res = await callUnary(bookingClient, 'GetBookingsByEmail', { email });
+    return {
+      success: true,
+      bookings: (res.bookings || []).map((b: any) => ({
+        bookingId: b.booking_id,
+        bookingCode: b.booking_code,
+        tripId: b.trip_id,
+        seatNumbers: b.seat_numbers,
+        passengerName: b.passenger_name,
+        passengerEmail: b.passenger_email,
+        status: b.status
+      }))
+    };
+  } catch (error: any) {
+    console.error('getBookingsByEmailAction failed:', error);
+    return { success: false, error: error.message || 'Failed to fetch bookings' };
+  }
+}

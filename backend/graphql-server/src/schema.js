@@ -11,6 +11,14 @@ export const typeDefs = `#graphql
     user: User!
   }
 
+  type SavedPassenger {
+    id: ID!
+    user_id: ID!
+    name: String!
+    email: String!
+    phone: String!
+  }
+
   type AdminStop {
     id: ID!
     name: String!
@@ -101,18 +109,37 @@ export const typeDefs = `#graphql
     getVehicles: [AdminVehicle!]!
     getTrips(route_id: String, status: String): [AdminTrip!]!
     getBookingsByTrip(trip_id: String!): [Booking!]!
-    searchTrips(origin: String!, destination: String!, date: String): [Trip!]!
+    searchTrips(origin: String!, destination: String!, date: String): SearchTripsResponse!
     trip(id: ID!): Trip
     tripDetail(id: ID!): Trip
     bookingStatus(bookingCode: String!, email: String!): BookingStatus
     revenueSummary(days: Int): [AnalyticsPoint!]!
     popularRoutes: [AnalyticsPoint!]!
+    savedPassengers: [SavedPassenger!]!
+  }
+
+  type SeatUpdateEvent {
+    tripId: ID!
+    seatNumbers: [String!]!
+    status: String!
+  }
+
+  type SearchTripsResponse {
+    trips: [Trip!]!
+    suggestedDate: String
+  }
+
+  type Subscription {
+    seatUpdated(tripId: ID!): SeatUpdateEvent!
   }
 
   type Mutation {
     register(name: String!, email: String!, password: String!, role: String): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
     
+    addSavedPassenger(name: String!, email: String!, phone: String!): SavedPassenger!
+    deleteSavedPassenger(id: ID!): GeneralResponse!
+
     createStop(name: String!, address: String!): AdminStop!
     updateStop(id: ID!, name: String!, address: String!): AdminStop!
     deleteStop(id: ID!): GeneralResponse!

@@ -33,12 +33,13 @@ interface Trip {
 
 interface TripSearchResultsProps {
   trips: Trip[];
+  suggestedDate?: string | null;
   origin: string;
   destination: string;
   date: string;
 }
 
-export default function TripSearchResults({ trips, origin, destination, date }: TripSearchResultsProps) {
+export default function TripSearchResults({ trips, suggestedDate, origin, destination, date }: TripSearchResultsProps) {
   // Filters
   const [timeFilter, setTimeFilter] = useState({
     morning: false,   // 00:00 - 12:00
@@ -348,21 +349,23 @@ export default function TripSearchResults({ trips, origin, destination, date }: 
                 Rất tiếc, tuyến xe từ <strong>{origin}</strong> đi <strong>{destination}</strong> vào ngày <strong>{formatDate(date)}</strong> hiện không có chuyến hoạt động.
               </p>
             </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 max-w-md mx-auto text-left space-y-3">
-              <div className="flex items-start gap-2.5 text-orange-800 text-xs font-bold uppercase tracking-wide">
-                <span>💡 Gợi ý kiểm thử:</span>
+            {suggestedDate && (
+              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 max-w-md mx-auto text-left space-y-3">
+                <div className="flex items-start gap-2.5 text-orange-800 text-xs font-bold uppercase tracking-wide">
+                  <span>💡 Gợi ý hệ thống:</span>
+                </div>
+                <p className="text-xs text-orange-700 leading-relaxed font-semibold">
+                  Chúng tôi tìm thấy chuyến xe gần nhất khởi hành vào ngày **{formatDate(suggestedDate)}**. Bạn có thể chọn ngày này để tiếp tục.
+                </p>
+                <Link
+                  href={`/?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=${suggestedDate}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl transition-all shadow-sm"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Thử ngày {formatDate(suggestedDate)}</span>
+                </Link>
               </div>
-              <p className="text-xs text-orange-700 leading-relaxed font-semibold">
-                Dữ liệu mẫu (Database Seed) được thiết lập cho tuyến xe này khởi hành vào ngày **27/07/2026**. Bạn có thể chọn ngày này để test luồng đặt vé đầy đủ!
-              </p>
-              <Link
-                href={`/?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&date=2026-07-27`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl transition-all shadow-sm"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Thử ngày 27/07/2026</span>
-              </Link>
-            </div>
+            )}
           </div>
         )}
       </div>

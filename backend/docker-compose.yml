@@ -92,6 +92,22 @@ services:
     volumes:
       - trip_db_data:/var/lib/postgresql/data
 
+
+  nginx:
+    image: nginx:alpine
+    container_name: api_gateway
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - db_p3
+      - user-db
+      - trip-db
+      - analytics-db
+
 volumes:
   db_data_p3:
   redis_data_p3:
