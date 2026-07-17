@@ -23,6 +23,7 @@ export function createUserGrpcHandlers(userService) {
         const user = await userService.register(call.request);
         callback(null, { user });
       } catch (error) {
+        console.error("UserService Register failed:", error);
         callback(toGrpcError(error));
       }
     },
@@ -31,6 +32,7 @@ export function createUserGrpcHandlers(userService) {
         const { user, token } = await userService.login(call.request);
         callback(null, { user, token });
       } catch (error) {
+        console.error("UserService Login failed:", error);
         callback(toGrpcError(error));
       }
     },
@@ -39,6 +41,7 @@ export function createUserGrpcHandlers(userService) {
         const user = await userService.getProfile(call.request.id);
         callback(null, { user });
       } catch (error) {
+        console.error("UserService GetProfile failed:", error);
         callback(toGrpcError(error));
       }
     }
