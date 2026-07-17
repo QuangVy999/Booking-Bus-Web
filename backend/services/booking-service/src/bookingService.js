@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { publishBookingEvent } from './rabbitmq.js';
 import { publishAnalyticsEvent } from './kafka.js';
 
-export function createBookingService(repository, seatInventoryGateway) {
+export function createBookingService(repository, seatInventoryGateway, tripGateway) {
   return {
     async createBooking({ tripId, seatNumbers, name, email, phone }) {
       if (!tripId || !seatNumbers || seatNumbers.length === 0 || !name || !email || !phone) {
@@ -13,6 +13,18 @@ export function createBookingService(repository, seatInventoryGateway) {
       const bookingCode = 'BKG' + crypto.randomBytes(3).toString('hex').toUpperCase();
       const bookingId = crypto.randomUUID();
 
+      // Get trip price
+      let tripPrice = 0;
+      if (tripGateway) {
+        try {
+          const trip = await tripGateway.getTripById(tripId);
+          if (trip) tripPrice = trip.price || 0;
+        } catch (err) {
+          console.warn(`Could not fetch trip price for trip ${tripId}:`, err.message);
+        }
+      }
+      const totalAmount = tripPrice * seatNumbers.length;
+
       const bookingData = {
         id: bookingId,
         booking_code: bookingCode,
@@ -20,6 +32,7 @@ export function createBookingService(repository, seatInventoryGateway) {
         passenger_name: name,
         passenger_email: email,
         passenger_phone: phone,
+        total_amount: totalAmount,
         status: 'DRAFT',
         created_at: new Date(),
         updated_at: new Date()
@@ -81,7 +94,7 @@ export function createBookingService(repository, seatInventoryGateway) {
       }
 
       // 1. gRPC Call to confirm seats permanently in Seat Inventory Service
-      const confirmResult = await seatInventoryGateway.confirmSeats(booking.trip_id, booking.seatNumbers);
+      const confirmResult = await seatInventoryGateway.confirmSeats(booking.trip_id, booking.seatNumbers, bookingId);
       
       if (!confirmResult.success) {
         throw new Error(`FAILED_PRECONDITION: Seat confirmation failed: ${confirmResult.message}`);
@@ -129,7 +142,7 @@ export function createBookingService(repository, seatInventoryGateway) {
       }
 
       // 1. gRPC Call to release seats in Seat Inventory Service
-      await seatInventoryGateway.releaseSeats(booking.trip_id, booking.seatNumbers);
+      await seatInventoryGateway.releaseSeats(booking.trip_id, booking.seatNumbers, bookingId);
 
       // 2. Update local status to CANCELLED
       await repository.updateBookingStatus(bookingId, 'CANCELLED');
