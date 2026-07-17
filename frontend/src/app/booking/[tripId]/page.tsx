@@ -1,5 +1,7 @@
 import React from 'react';
 import { getSeatInventoryAction } from '@/app/actions/booking';
+import { getSavedPassengersAction } from '@/app/actions/user';
+import { getCurrentStudent } from '@/lib/auth/session';
 import BookingPageClient from './BookingPageClient';
 import { graphqlRequest } from '@/lib/graphql/client';
 import { GET_TRIP_DETAIL_QUERY } from '@/lib/graphql/documents';
@@ -13,8 +15,10 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { tripId } = await params;
 
+  const student = await getCurrentStudent();
+
   // Fetch seat inventory and trip details in parallel
-  const [res, tripData] = await Promise.all([
+  const [res, tripData, savedPassengersRes] = await Promise.all([
     getSeatInventoryAction(tripId),
     graphqlRequest<{ tripDetail: any }, any>({
       query: GET_TRIP_DETAIL_QUERY,
@@ -22,7 +26,8 @@ export default async function Page({ params }: PageProps) {
     }).catch((err) => {
       console.error("Failed to query trip detail for checkout page:", err);
       return null;
-    })
+    }),
+    student ? getSavedPassengersAction().catch(() => ({ success: false, passengers: [] })) : Promise.resolve({ success: false, passengers: [] })
   ]);
 
   if (!res.success) {
@@ -40,10 +45,11 @@ export default async function Page({ params }: PageProps) {
   }
 
   const trip = tripData?.tripDetail || null;
+  const savedPassengers = savedPassengersRes.success ? savedPassengersRes.passengers : [];
 
   return (
     <div className="w-full py-6">
-      <BookingPageClient initialSeats={res.seats} tripId={tripId} trip={trip} />
+      <BookingPageClient initialSeats={res.seats} tripId={tripId} trip={trip} savedPassengers={savedPassengers} isLoggedIn={!!student} />
     </div>
   );
 }

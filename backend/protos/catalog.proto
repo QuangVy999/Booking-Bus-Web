@@ -49,6 +49,7 @@ message SearchTripsRequest {
 
 message SearchTripsResponse {
   repeated Trip trips = 1;
+  string suggested_date = 2;
 }
 
 message GetTripDetailRequest {

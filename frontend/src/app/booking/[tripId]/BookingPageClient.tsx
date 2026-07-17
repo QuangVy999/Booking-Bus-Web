@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import SeatMap from '@/components/booking/SeatMap';
 import CheckoutForm from '@/components/booking/CheckoutForm';
 import { createBookingAction } from '@/app/actions/booking';
+import { addSavedPassengerAction } from '@/app/actions/user';
 import { toast, Toaster } from 'sonner';
-import { Bus, User, Mail, Phone, ChevronRight } from 'lucide-react';
+import { Bus, User, Mail, Phone, ChevronRight, BookmarkPlus } from 'lucide-react';
 import Link from 'next/link';
 
 interface Seat {
@@ -19,6 +20,8 @@ interface BookingPageClientProps {
   initialSeats: Seat[];
   tripId: string;
   trip?: any;
+  savedPassengers?: any[];
+  isLoggedIn?: boolean;
 }
 
 const initialState = {
@@ -30,10 +33,16 @@ const initialState = {
   expiryTimestamp: 0
 };
 
-export default function BookingPageClient({ initialSeats, tripId, trip }: BookingPageClientProps) {
+export default function BookingPageClient({ initialSeats, tripId, trip, savedPassengers = [], isLoggedIn = false }: BookingPageClientProps) {
   const router = useRouter();
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>('');
+  
+  // Passenger info state for autofill
+  const [pName, setPName] = useState('');
+  const [pPhone, setPPhone] = useState('');
+  const [pEmail, setPEmail] = useState('');
+  const [savePassenger, setSavePassenger] = useState(false);
 
   // useActionState for form handling
   const [state, formAction, isPending] = useActionState<any, FormData>(
@@ -48,7 +57,13 @@ export default function BookingPageClient({ initialSeats, tripId, trip }: Bookin
 
       try {
         const res = await createBookingAction(prevState, formData);
+        
         if (res.success) {
+          // If save passenger is checked, add it asynchronously
+          if (savePassenger) {
+            addSavedPassengerAction(pName, pEmail, pPhone).catch(e => console.error(e));
+          }
+
           toast.success('Khóa ghế thành công! Đang chuyển đến trang thanh toán...');
           setTimeout(() => {
             router.push(`/booking/confirmation/${res.bookingId}`);
@@ -111,7 +126,34 @@ export default function BookingPageClient({ initialSeats, tripId, trip }: Bookin
 
             {/* Passenger Info & Terms Container */}
             <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
-              <h2 className="text-sm font-black uppercase text-slate-700 border-b border-slate-100 pb-2">Thông tin khách hàng</h2>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 className="text-sm font-black uppercase text-slate-700">Thông tin khách hàng</h2>
+                
+                {isLoggedIn && savedPassengers.length > 0 && (
+                  <div className="relative group">
+                    <button type="button" className="text-xs font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-1.5">
+                      <BookmarkPlus className="w-3.5 h-3.5" /> Chọn từ sổ tay
+                    </button>
+                    {/* Dropdown for saved passengers */}
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 overflow-hidden">
+                      {savedPassengers.map(p => (
+                        <div 
+                          key={p.id}
+                          onClick={() => {
+                            setPName(p.name);
+                            setPPhone(p.phone);
+                            setPEmail(p.email);
+                          }}
+                          className="px-4 py-3 hover:bg-orange-50 cursor-pointer border-b border-slate-50 last:border-0"
+                        >
+                          <p className="text-sm font-bold text-slate-800">{p.name}</p>
+                          <p className="text-xs text-slate-500 font-medium">{p.phone} • {p.email}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Left: Input Fields */}
@@ -128,6 +170,8 @@ export default function BookingPageClient({ initialSeats, tripId, trip }: Bookin
                         name="passengerName"
                         type="text"
                         required
+                        value={pName}
+                        onChange={e => setPName(e.target.value)}
                         placeholder="Trần Lê Gia Huy"
                         disabled={isPending}
                         className="w-full bg-slate-50/50 border border-slate-200 focus:border-orange-500 focus:bg-white rounded-lg py-2.5 pl-10 pr-3 text-xs text-slate-700 font-bold outline-none transition-all"
@@ -147,6 +191,8 @@ export default function BookingPageClient({ initialSeats, tripId, trip }: Bookin
                         name="passengerPhone"
                         type="tel"
                         required
+                        value={pPhone}
+                        onChange={e => setPPhone(e.target.value)}
                         placeholder="0944707759"
                         disabled={isPending}
                         className="w-full bg-slate-50/50 border border-slate-200 focus:border-orange-500 focus:bg-white rounded-lg py-2.5 pl-10 pr-3 text-xs text-slate-700 font-bold outline-none transition-all"
@@ -166,12 +212,28 @@ export default function BookingPageClient({ initialSeats, tripId, trip }: Bookin
                         name="passengerEmail"
                         type="email"
                         required
+                        value={pEmail}
+                        onChange={e => setPEmail(e.target.value)}
                         placeholder="tranlegiahuy@gmail.com"
                         disabled={isPending}
                         className="w-full bg-slate-50/50 border border-slate-200 focus:border-orange-500 focus:bg-white rounded-lg py-2.5 pl-10 pr-3 text-xs text-slate-700 font-bold outline-none transition-all"
                       />
                     </div>
                   </div>
+                  
+                  {isLoggedIn && (
+                    <div className="pt-2">
+                      <label className="flex items-center gap-2 cursor-pointer group w-fit">
+                        <input 
+                          type="checkbox" 
+                          checked={savePassenger}
+                          onChange={e => setSavePassenger(e.target.checked)}
+                          className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500 cursor-pointer"
+                        />
+                        <span className="text-xs font-bold text-slate-600 group-hover:text-slate-800 transition-colors">Lưu thông tin hành khách này</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: Terms & Notes */}

@@ -124,6 +124,27 @@ export function createBookingGrpcHandlers(bookingService) {
       }
     },
 
+    async getBookingsByEmail(call, callback) {
+      try {
+        const { email } = call.request;
+        const result = await bookingService.getBookingsByEmail(email);
+        
+        callback(null, {
+          bookings: result.map(b => ({
+            booking_id: b.id,
+            booking_code: b.booking_code,
+            trip_id: b.trip_id,
+            seat_numbers: b.seatNumbers,
+            passenger_name: b.passenger_name,
+            passenger_email: b.passenger_email,
+            status: b.status
+          }))
+        });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
+    },
+
     async checkInBooking(call, callback) {
       try {
         const { booking_code } = call.request;

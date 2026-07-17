@@ -49,6 +49,10 @@ export function createSeatInventoryService(repository, redisClient) {
       }
 
       const expiryTimestamp = Date.now() + (HOLD_TTL_SECONDS * 1000);
+      
+      // Publish event
+      redisClient.publish('seat_updates', JSON.stringify({ tripId, seatNumbers, status: 'HELD' }));
+
       return {
         success: true,
         message: 'Seats held successfully',
@@ -79,6 +83,9 @@ export function createSeatInventoryService(repository, redisClient) {
       // 2. Remove locks from Redis
       await redisClient.del(...keys);
 
+      // Publish event
+      redisClient.publish('seat_updates', JSON.stringify({ tripId, seatNumbers, status: 'BOOKED' }));
+
       return {
         success: true,
         message: 'Seats confirmed successfully'
@@ -93,6 +100,9 @@ export function createSeatInventoryService(repository, redisClient) {
       // Remove locks from Redis
       const keys = seatNumbers.map(num => `hold:${tripId}:${num}`);
       await redisClient.del(...keys);
+
+      // Publish event
+      redisClient.publish('seat_updates', JSON.stringify({ tripId, seatNumbers, status: 'AVAILABLE' }));
 
       return {
         success: true,
@@ -191,6 +201,9 @@ export function createSeatInventoryService(repository, redisClient) {
       // 3. Update status to BLOCKED in DB
       await repository.updateSeatsStatus(tripId, seatNumbers, 'BLOCKED');
 
+      // Publish event
+      redisClient.publish('seat_updates', JSON.stringify({ tripId, seatNumbers, status: 'BLOCKED' }));
+
       return {
         success: true,
         message: 'Seats blocked successfully'
@@ -204,6 +217,9 @@ export function createSeatInventoryService(repository, redisClient) {
 
       // 1. Update status to AVAILABLE in DB
       await repository.updateSeatsStatus(tripId, seatNumbers, 'AVAILABLE');
+
+      // Publish event
+      redisClient.publish('seat_updates', JSON.stringify({ tripId, seatNumbers, status: 'AVAILABLE' }));
 
       return {
         success: true,
