@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db_p3:
+    image: postgres:15-alpine
+    container_name: db_p3
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: seat_inventory_db
+    ports:
+      - "15433:5432"
+    volumes:
+      - db_data_p3:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d seat_inventory_db"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+
+  redis_p3:
+    image: redis:7-alpine
+    container_name: redis_p3
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data_p3:/data
+
+  rabbitmq_p3:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq_p3
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: "admin123"
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data_p3:
+  redis_data_p3:
+  rabbitmq_data_p3:
