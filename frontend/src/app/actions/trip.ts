@@ -94,13 +94,13 @@ export async function getRoutes() {
 }
 export async function createRoute(name: string, start_stop_id: string, end_stop_id: string) {
   const token = await getAuthToken();
-  const query = `mutation CreateRoute($name: String!, $start_stop_id: String!, $end_stop_id: String!) { createRoute(name: $name, start_stop_id: $start_stop_id, end_stop_id: $end_stop_id) { id } }`;
+  const query = `mutation CreateAdminRoute($name: String!, $start_stop_id: String!, $end_stop_id: String!) { createAdminRoute(name: $name, start_stop_id: $start_stop_id, end_stop_id: $end_stop_id) { id } }`;
   try { await graphqlRequest({ query, variables: { name, start_stop_id, end_stop_id }, token }); revalidatePath("/dashboard/routes"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
 export async function deleteRoute(id: string) {
   const token = await getAuthToken();
-  const query = `mutation DeleteRoute($id: ID!) { deleteRoute(id: $id) { success } }`;
+  const query = `mutation DeleteAdminRoute($id: ID!) { deleteAdminRoute(id: $id) { success } }`;
   try { await graphqlRequest({ query, variables: { id }, token }); revalidatePath("/dashboard/routes"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
@@ -116,13 +116,13 @@ export async function getVehicles() {
 }
 export async function createVehicle(license_plate: string, total_seats: number, seat_map: string) {
   const token = await getAuthToken();
-  const query = `mutation CreateVehicle($license_plate: String!, $total_seats: Int!, $seat_map: String!) { createVehicle(license_plate: $license_plate, total_seats: $total_seats, seat_map: $seat_map) { id } }`;
+  const query = `mutation CreateAdminVehicle($license_plate: String!, $total_seats: Int!, $seat_map: String!) { createAdminVehicle(license_plate: $license_plate, total_seats: $total_seats, seat_map: $seat_map) { id } }`;
   try { await graphqlRequest({ query, variables: { license_plate, total_seats, seat_map }, token }); revalidatePath("/dashboard/vehicles"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
 export async function deleteVehicle(id: string) {
   const token = await getAuthToken();
-  const query = `mutation DeleteVehicle($id: ID!) { deleteVehicle(id: $id) { success } }`;
+  const query = `mutation DeleteAdminVehicle($id: ID!) { deleteAdminVehicle(id: $id) { success } }`;
   try { await graphqlRequest({ query, variables: { id }, token }); revalidatePath("/dashboard/vehicles"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
@@ -138,7 +138,7 @@ export async function getTrips(route_id?: string, status?: string) {
 }
 export async function createTrip(route_id: string, vehicle_id: string, departure_time: string, arrival_time: string, price: number) {
   const token = await getAuthToken();
-  const query = `mutation CreateTrip($route_id: String!, $vehicle_id: String!, $departure_time: String!, $arrival_time: String!, $price: Int!) { createTrip(route_id: $route_id, vehicle_id: $vehicle_id, departure_time: $departure_time, arrival_time: $arrival_time, price: $price) { id } }`;
+  const query = `mutation CreateAdminTrip($route_id: String!, $vehicle_id: String!, $departure_time: String!, $arrival_time: String!, $price: Int!) { createAdminTrip(route_id: $route_id, vehicle_id: $vehicle_id, departure_time: $departure_time, arrival_time: $arrival_time, price: $price) { id } }`;
   try { await graphqlRequest({ query, variables: { route_id, vehicle_id, departure_time, arrival_time, price }, token }); revalidatePath("/dashboard/trips"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
@@ -146,6 +146,12 @@ export async function updateTripStatus(id: string, status: string) {
   const token = await getAuthToken();
   const query = `mutation UpdateTripStatus($id: ID!, $status: String!) { updateTripStatus(id: $id, status: $status) { id } }`;
   try { await graphqlRequest({ query, variables: { id, status }, token }); revalidatePath("/dashboard/trips"); return { success: true }; }
+  catch (err: any) { return { success: false, error: err.message }; }
+}
+export async function deleteTrip(id: string) {
+  const token = await getAuthToken();
+  const query = `mutation DeleteAdminTrip($id: ID!) { deleteAdminTrip(id: $id) { success } }`;
+  try { await graphqlRequest({ query, variables: { id }, token }); revalidatePath("/dashboard/trips"); return { success: true }; }
   catch (err: any) { return { success: false, error: err.message }; }
 }
 

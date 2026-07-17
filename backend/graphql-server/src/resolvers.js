@@ -1,6 +1,12 @@
 import { GraphQLError } from 'graphql';
 import { grpcClients, callUnary } from './grpcClients.js';
 
+const trips = [
+  { id: 'TRIP-001', origin: 'Sài Gòn', destination: 'Đà Lạt', route: 'Sài Gòn → Đà Lạt', departureTime: '2026-07-18T07:00:00+07:00', price: 250000, availableSeats: 25 },
+  { id: 'TRIP-002', origin: 'Sài Gòn', destination: 'Nha Trang', route: 'Sài Gòn → Nha Trang', departureTime: '2026-07-18T08:30:00+07:00', price: 310000, availableSeats: 18 },
+];
+const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://localhost:4010';
+
 function toGraphQLError(error, fallbackMessage = 'Internal server error') {
   if (error.code === 5) { // NOT_FOUND
     return new GraphQLError(error.details || 'Resource not found', {
@@ -27,6 +33,42 @@ function toGraphQLError(error, fallbackMessage = 'Internal server error') {
   });
 }
 
+function mapRoute(route) {
+  if (!route) return null;
+  return {
+    id: route.id,
+    origin: route.origin,
+    destination: route.destination,
+    distance: route.distance,
+    duration: route.duration
+  };
+}
+
+function mapVehicle(vehicle) {
+  if (!vehicle) return null;
+  return {
+    id: vehicle.id,
+    plateNumber: vehicle.plate_number,
+    type: vehicle.type,
+    capacity: vehicle.capacity
+  };
+}
+
+function mapTrip(trip) {
+  if (!trip) return null;
+  return {
+    id: trip.id,
+    route: mapRoute(trip.route),
+    vehicle: mapVehicle(trip.vehicle),
+    departureTime: trip.departure_time,
+    arrivalTime: trip.arrival_time,
+    price: trip.price,
+    status: trip.status,
+    busCompany: trip.bus_company,
+    availableSeats: trip.available_seats
+  };
+}
+
 export const resolvers = {
   Query: {
     me: async (_, __, context) => {
@@ -40,6 +82,7 @@ export const resolvers = {
         return null;
       }
     },
+<<<<<<< HEAD
     getStops: async () => {
       try {
         const response = await callUnary(grpcClients.trip, 'GetStops', {});
@@ -69,6 +112,50 @@ export const resolvers = {
         const response = await callUnary(grpcClients.booking, 'GetBookingsByTrip', { trip_id });
         return response.bookings || [];
       } catch (error) { throw toGraphQLError(error, 'Cannot get bookings'); }
+    },
+    searchTrips: async (_, { origin, destination, date }) => {
+      try {
+        const searchDate = date || new Date().toISOString().split('T')[0];
+        const response = await callUnary(grpcClients.catalog, 'SearchTrips', { origin, destination, date: searchDate });
+        return (response.trips || []).map(mapTrip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to search trips');
+      }
+    },
+    trip: async (_, { id }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'GetTripDetail', { trip_id: id });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to retrieve trip');
+      }
+    },
+    tripDetail: async (_, { id }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'GetTripDetail', { trip_id: id });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to retrieve trip details');
+      }
+    },
+    bookingStatus: async (_, { bookingCode, email }) => {
+      if (!email) throw new GraphQLError('Email is required to protect booking information', { extensions: { code: 'BAD_USER_INPUT' } });
+      try {
+        const booking = await callUnary(grpcClients.booking, 'GetBooking', { booking_code: bookingCode, passenger_email: email });
+        return { bookingCode: booking.booking_code, tripId: booking.trip_id, status: booking.status, seatNumbers: booking.seat_numbers };
+      } catch (error) { throw toGraphQLError(error, 'Cannot retrieve booking'); }
+    },
+    revenueSummary: async (_, { days = 30 }) => {
+      const response = await fetch(`${analyticsUrl}/analytics/revenue?days=${days}`);
+      if (!response.ok) return [];
+      const body = await response.json();
+      return body.data.map((row) => ({ label: row.day, value: Number(row.revenue) }));
+    },
+    popularRoutes: async () => {
+      const response = await fetch(`${analyticsUrl}/analytics/popular-routes`);
+      if (!response.ok) return [];
+      const body = await response.json();
+      return body.data.map((row) => ({ label: row.route, value: Number(row.searches) }));
     }
   },
   Mutation: {
@@ -99,37 +186,37 @@ export const resolvers = {
       catch (error) { throw toGraphQLError(error); }
     },
 
-    createRoute: async (_, args) => {
+    createAdminRoute: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'CreateRoute', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    updateRoute: async (_, args) => {
+    updateAdminRoute: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'UpdateRoute', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    deleteRoute: async (_, { id }) => {
+    deleteAdminRoute: async (_, { id }) => {
       try { return await callUnary(grpcClients.trip, 'DeleteRoute', { id }); }
       catch (error) { throw toGraphQLError(error); }
     },
 
-    createVehicle: async (_, args) => {
+    createAdminVehicle: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'CreateVehicle', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    updateVehicle: async (_, args) => {
+    updateAdminVehicle: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'UpdateVehicle', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    deleteVehicle: async (_, { id }) => {
+    deleteAdminVehicle: async (_, { id }) => {
       try { return await callUnary(grpcClients.trip, 'DeleteVehicle', { id }); }
       catch (error) { throw toGraphQLError(error); }
     },
 
-    createTrip: async (_, args) => {
+    createAdminTrip: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'CreateTrip', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    updateTrip: async (_, args) => {
+    updateAdminTrip: async (_, args) => {
       try { return await callUnary(grpcClients.trip, 'UpdateTrip', args); }
       catch (error) { throw toGraphQLError(error); }
     },
@@ -137,7 +224,7 @@ export const resolvers = {
       try { return await callUnary(grpcClients.trip, 'UpdateTripStatus', args); }
       catch (error) { throw toGraphQLError(error); }
     },
-    deleteTrip: async (_, { id }) => {
+    deleteAdminTrip: async (_, { id }) => {
       try { return await callUnary(grpcClients.trip, 'DeleteTrip', { id }); }
       catch (error) { throw toGraphQLError(error); }
     },
@@ -149,6 +236,38 @@ export const resolvers = {
     blockSeats: async (_, { trip_id, seat_numbers }) => {
       try { return await callUnary(grpcClients.seat, 'BlockSeats', { trip_id, seat_numbers }); }
       catch (error) { throw toGraphQLError(error); }
+    },
+
+    createRoute: async (_, { origin, destination, distance, duration }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateRoute', { origin, destination, distance, duration });
+        return mapRoute(response.route);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create route');
+      }
+    },
+    createVehicle: async (_, { plateNumber, type, capacity }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateVehicle', { plate_number: plateNumber, type, capacity });
+        return mapVehicle(response.vehicle);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create vehicle');
+      }
+    },
+    createTrip: async (_, { routeId, vehicleId, departureTime, arrivalTime, price, busCompany }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateTrip', {
+          route_id: routeId,
+          vehicle_id: vehicleId,
+          departure_time: departureTime,
+          arrival_time: arrivalTime,
+          price,
+          bus_company: busCompany
+        });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create trip');
+      }
     }
   }
 };

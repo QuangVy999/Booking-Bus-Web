@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { publishBookingEvent } from './rabbitmq.js';
+import { publishAnalyticsEvent } from './kafka.js';
 
 export function createBookingService(repository, seatInventoryGateway) {
   return {
@@ -38,6 +39,9 @@ export function createBookingService(repository, seatInventoryGateway) {
           // 3. If hold succeeded, update status to PENDING_PAYMENT
           await repository.updateBookingStatus(bookingId, 'PENDING_PAYMENT', trx);
           await trx.commit();
+          await publishAnalyticsEvent('booking-events', 'booking.created', {
+            bookingId, tripId, seatCount: seatNumbers.length, route: tripId
+          });
           
           return {
             bookingId: bookingId,
@@ -99,6 +103,10 @@ export function createBookingService(repository, seatInventoryGateway) {
       };
 
       await publishBookingEvent('booking.paid', eventMessage);
+      await publishAnalyticsEvent('payment-events', 'payment.completed', {
+        bookingId: booking.id, tripId: booking.trip_id, route: booking.trip_id,
+        amount: Number(booking.total_amount || 0), currency: 'VND'
+      });
 
       return {
         success: true,

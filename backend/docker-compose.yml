@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db_p3:
     image: postgres:15-alpine
@@ -42,6 +40,24 @@ services:
       timeout: 5s
       retries: 5
 
+  kafka:
+    image: apache/kafka:3.8.1
+    container_name: kafka_p4
+    ports:
+      - "9092:9092"
+
+  analytics-db:
+    image: postgres:15-alpine
+    container_name: analytics_db_p4
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: "123456"
+      POSTGRES_DB: analytics_db
+    ports:
+      - "15434:5432"
+    volumes:
+      - analytics_db_data_p4:/var/lib/postgresql/data
+
   user-db:
     image: postgres:15-alpine
     container_name: user_db
@@ -67,7 +83,7 @@ services:
       POSTGRES_PASSWORD: "123456"
       POSTGRES_DB: trip_db
     ports:
-      - "15434:5432"
+      - "15435:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d trip_db"]
       interval: 5s
@@ -81,4 +97,5 @@ volumes:
   redis_data_p3:
   rabbitmq_data_p3:
   user_db_data:
+  analytics_db_data_p4:
   trip_db_data:
