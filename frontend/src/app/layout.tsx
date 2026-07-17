@@ -37,8 +37,13 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-slate-50">
         <header className="bg-orange-500 text-white py-4 px-6 shadow-md flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <span className="font-bold text-xl tracking-tight">VÉ XE RẺ</span>
+          <div className="flex items-center gap-6">
+            <a href="/" className="font-bold text-xl tracking-tight hover:opacity-90 transition">VÉ XE RẺ</a>
+            <nav className="flex items-center gap-4 text-sm font-medium border-l border-orange-400 pl-4">
+              <a href="/dashboard/ai-advisor" className="opacity-85 hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                <span>🤖</span> Trợ lý AI
+              </a>
+            </nav>
           </div>
           {user ? (
             <div className="flex items-center gap-4">
