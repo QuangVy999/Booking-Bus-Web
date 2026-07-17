@@ -10,9 +10,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col px-4 py-12">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      <p className="mt-2 text-gray-500">
-        Xin chào {student.name}, bạn đang ở trang quản trị (Admin).
+      <h1 className="text-3xl font-bold text-orange-600">Admin Dashboard</h1>
+      <p className="mt-2 text-gray-600">
+        Xin chào <span className="font-medium text-orange-600">{student.name}</span>, bạn đang ở trang quản trị.
       </p>
 
       <div className="mt-8 p-6 bg-white shadow rounded-lg border">

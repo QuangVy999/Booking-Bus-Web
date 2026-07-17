@@ -6,7 +6,7 @@ export function createUserService(userRepository) {
   const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
   return {
-    async register({ name, email, password }) {
+    async register({ name, email, password, role }) {
       if (!name || !email || !password) {
         const err = new Error('Name, email and password are required');
         err.code = 'INVALID_ARGUMENT';
@@ -25,7 +25,7 @@ export function createUserService(userRepository) {
         name,
         email,
         password: passwordHash,
-        role: 'Registered'
+        role: role || 'Registered'
       });
       return user;
     },

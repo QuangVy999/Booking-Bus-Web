@@ -55,17 +55,30 @@ export function RegisterForm() {
           placeholder="Ít nhất 6 ký tự"
           autoComplete="new-password"
           required
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500"
         />
       </div>
 
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded" disabled={isPending}>
+      <div className="space-y-2">
+        <label htmlFor="role" className="block text-sm font-medium">Vai trò</label>
+        <select
+          id="role"
+          name="role"
+          className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500 bg-white"
+        >
+          <option value="Registered">Người dùng thường (Registered)</option>
+          <option value="Admin">Quản trị viên (Admin)</option>
+          <option value="Staff">Nhân viên (Staff)</option>
+        </select>
+      </div>
+
+      <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition-colors font-medium" disabled={isPending}>
         {isPending ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
       </button>
 
       <p className="text-center text-sm text-gray-500">
         Đã có tài khoản?{" "}
-        <Link href="/login" className="font-medium underline text-blue-600">
+        <Link href="/login" className="font-medium underline text-orange-500 hover:text-orange-600">
           Đăng nhập
         </Link>
       </p>

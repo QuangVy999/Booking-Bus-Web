@@ -11,14 +11,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col px-4 py-12">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Hồ sơ người dùng</h1>
-        <form action={logoutAction}>
-          <button type="submit" className="px-4 py-2 border rounded bg-gray-100 hover:bg-gray-200">
-            Đăng xuất
-          </button>
-        </form>
-      </div>
+      <h1 className="text-3xl font-bold mb-8 text-orange-600">Thông tin cá nhân</h1>
       
       <div className="p-6 bg-white shadow rounded-lg border space-y-4">
         <div>

@@ -29,7 +29,7 @@ export function LoginForm() {
           placeholder="student@example.com"
           autoComplete="email"
           required
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500"
         />
       </div>
 
@@ -42,17 +42,17 @@ export function LoginForm() {
           placeholder="••••••••"
           autoComplete="current-password"
           required
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded focus:ring-orange-500 focus:border-orange-500"
         />
       </div>
 
-      <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded" disabled={isPending}>
+      <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white p-2 rounded transition-colors font-medium" disabled={isPending}>
         {isPending ? "Đang đăng nhập..." : "Đăng nhập"}
       </button>
 
       <p className="text-center text-sm text-gray-500">
         Chưa có tài khoản?{" "}
-        <Link href="/register" className="font-medium underline text-blue-600">
+        <Link href="/register" className="font-medium underline text-orange-500 hover:text-orange-600">
           Đăng ký tại đây
         </Link>
       </p>

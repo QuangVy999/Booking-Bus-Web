@@ -42,9 +42,9 @@ export const resolvers = {
     }
   },
   Mutation: {
-    register: async (_, { name, email, password }) => {
+    register: async (_, { name, email, password, role }) => {
       try {
-        const response = await callUnary(grpcClients.user, 'Register', { name, email, password });
+        const response = await callUnary(grpcClients.user, 'Register', { name, email, password, role });
         // After register, we should probably login to get the token.
         // But our gRPC Register returns only User. Let's auto-login if needed,
         // or just throw if we can't get a token. Wait, the user.proto only returns User for Register.

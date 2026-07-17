@@ -13,9 +13,11 @@ export default async function LoginPage(props: {
   const registered = searchParams.registered === "1";
 
   return (
-    <div className="mx-auto flex max-w-md flex-col px-4 py-12">
-      <h1 className="text-3xl font-bold">Đăng nhập</h1>
-      <p className="mt-2 text-gray-500">Sử dụng tài khoản của bạn để đăng nhập.</p>
+    <div className="mx-auto flex max-w-md flex-col px-4 py-12 mt-10 bg-white rounded-xl shadow-lg border border-gray-100">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-orange-600">Đăng nhập</h1>
+        <p className="mt-2 text-gray-500">Sử dụng tài khoản của bạn để đăng nhập</p>
+      </div>
 
       {registered && (
         <div className="mt-6 bg-green-100 text-green-800 p-3 rounded text-sm">

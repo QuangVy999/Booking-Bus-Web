@@ -11,8 +11,8 @@ export async function loginStudent(input: { email: string; password: string }): 
   return data.login;
 }
 
-export async function createStudent(input: { name: string; email: string; password: string }): Promise<AuthPayload> {
-  const data = await graphqlRequest<RegisterResult, { name: string; email: string; password: string }>({
+export async function createStudent(input: { name: string; email: string; password: string; role?: string }): Promise<AuthPayload> {
+  const data = await graphqlRequest<RegisterResult, { name: string; email: string; password: string; role?: string }>({
     query: REGISTER_MUTATION,
     variables: input,
     cache: "no-store",
