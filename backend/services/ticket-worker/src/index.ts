@@ -2,9 +2,12 @@ import amqp from "amqplib";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 const RABBITMQ_URL = "amqp://admin:admin123@localhost:5673";
 const QUEUE_NAME = "booking.paid.queue";
+const EXCHANGE_NAME = "booking.events";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function startWorker() {
   try {
@@ -13,6 +16,8 @@ async function startWorker() {
     const channel = await connection.createChannel();
 
     await channel.assertQueue(QUEUE_NAME, { durable: true });
+    await channel.assertExchange(EXCHANGE_NAME, "topic", { durable: true });
+    await channel.bindQueue(QUEUE_NAME, EXCHANGE_NAME, "booking.paid");
     console.log(
       `✅ Kết nối thành công! Đang lắng nghe event tại queue: [${QUEUE_NAME}]`,
     );
@@ -37,8 +42,8 @@ async function startWorker() {
         doc.fontSize(20).text("VE XE KHACH DIEN TU", { align: "center" });
         doc.moveDown();
         doc.fontSize(14).text(`Ma ve: ${data.bookingId}`);
-        doc.text(`Khach hang: ${data.customerName}`);
-        doc.text(`Tuyen: ${data.route}`);
+        doc.text(`Khach hang: ${data.passengerName || data.customerName || "N/A"}`);
+        doc.text(`Chuyen: ${data.tripId || data.route || "N/A"}`);
         doc.end();
 
         stream.on("finish", () => {

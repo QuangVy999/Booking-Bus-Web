@@ -1,106 +1,58 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { CallToolRequestSchema, ListToolsRequestSchema, ListResourcesRequestSchema, ReadResourceRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
-// Khởi tạo MCP Server
-const server = new Server({
-    name: "bus-portal",
-    version: "1.0.0",
-}, {
-    capabilities: {
-        tools: {},
-        resources: {},
-    },
-});
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-    return {
-        tools: [
-            {
-                name: "search_trips",
-                description: "Tìm kiếm các chuyến xe đang mở bán",
-                inputSchema: {
-                    type: "object",
-                    properties: {
-                        query: { type: "string", description: "Từ khóa điểm đi/đến" },
-                    },
-                    required: ["query"],
-                },
-            },
-            {
-                name: "get_booking_status",
-                description: "Tra cứu trạng thái của một mã vé",
-                inputSchema: {
-                    type: "object",
-                    properties: {
-                        bookingId: { type: "string" },
-                    },
-                    required: ["bookingId"],
-                },
-            },
-        ],
-    };
-});
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    if (request.params.name === "search_trips") {
-        const query = request.params.arguments?.query;
-        return {
-            content: [
-                {
-                    type: "text",
-                    text: JSON.stringify({
-                        message: `Đã tìm kiếm chuyến xe với từ khóa: ${query}`,
-                        status: "success",
-                    }),
-                },
-            ],
-        };
-    }
-    if (request.params.name === "get_booking_status") {
-        const bookingId = request.params.arguments?.bookingId;
-        return {
-            content: [
-                {
-                    type: "text",
-                    text: JSON.stringify({
-                        bookingId,
-                        status: "PAID",
-                        message: "Vé đã được thanh toán",
-                    }),
-                },
-            ],
-        };
-    }
-    throw new Error("Tool không tồn tại trên hệ thống");
-});
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    return {
-        resources: [
-            {
-                uri: "bus://policy",
-                name: "Chính sách nhà xe",
-                mimeType: "text/plain",
-                description: "Các quy định về hủy vé, hoàn tiền và hành lý",
-            },
-        ],
-    };
-});
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-    if (request.params.uri === "bus://policy") {
-        return {
-            contents: [
-                {
-                    uri: "bus://policy",
-                    mimeType: "text/plain",
-                    text: "CHÍNH SÁCH NHÀ XE:\n1. Hủy vé trước 24h: Hoàn 100% tiền.\n2. Hủy vé trước 12h: Hoàn 50% tiền.\n3. Hành lý mang theo không vượt quá 20kg.\n4. Hành khách phải có mặt trước 30 phút để check-in.",
-                },
-            ],
-        };
-    }
-    throw new Error("Resource không tồn tại trên hệ thống");
-});
-async function run() {
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.error("🚀 MCP Server 'bus-portal' đã khởi động và sẵn sàng nhận lệnh từ AI...");
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { CallToolRequestSchema, ListResourcesRequestSchema, ListToolsRequestSchema, ReadResourceRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+const graphqlUrl = process.env.BACKEND_GRAPHQL_URL || 'http://localhost:4000/graphql';
+const analyticsUrl = process.env.ANALYTICS_SERVICE_URL || 'http://localhost:4010';
+async function graphQL(query, variables) {
+    const response = await fetch(graphqlUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query, variables }) });
+    const body = await response.json();
+    if (!response.ok || body.errors)
+        throw new Error(body.errors?.[0]?.message || 'Backend is unavailable');
+    return body.data;
 }
-run().catch(console.error);
+async function analytics(path) {
+    const response = await fetch(`${analyticsUrl}${path}`);
+    if (!response.ok)
+        throw new Error('Analytics service is unavailable');
+    return response.json();
+}
+const text = (value) => ({ content: [{ type: 'text', text: JSON.stringify(value, null, 2) }] });
+const server = new Server({ name: 'bus-portal', version: '1.1.0' }, { capabilities: { tools: {}, resources: {} } });
+server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [
+        { name: 'search_trips', description: 'Tìm chuyến xe theo điểm đi, điểm đến và ngày.', inputSchema: { type: 'object', properties: { origin: { type: 'string' }, destination: { type: 'string' }, date: { type: 'string', description: 'YYYY-MM-DD' } }, required: ['origin', 'destination'] } },
+        { name: 'get_trip_detail', description: 'Lấy chi tiết một chuyến xe.', inputSchema: { type: 'object', properties: { tripId: { type: 'string' } }, required: ['tripId'] } },
+        { name: 'get_booking_status', description: 'Tra cứu trạng thái vé. Bắt buộc có mã booking và email đã dùng đặt vé.', inputSchema: { type: 'object', properties: { bookingCode: { type: 'string' }, email: { type: 'string' } }, required: ['bookingCode', 'email'] } },
+        { name: 'get_revenue_summary', description: 'Lấy doanh thu tổng hợp cho admin.', inputSchema: { type: 'object', properties: { days: { type: 'number', minimum: 1, maximum: 365 } } } },
+        { name: 'get_popular_routes', description: 'Lấy các tuyến được tìm kiếm nhiều.', inputSchema: { type: 'object', properties: {} } },
+    ] }));
+server.setRequestHandler(CallToolRequestSchema, async ({ params }) => {
+    const args = params.arguments || {};
+    if (params.name === 'search_trips')
+        return text((await graphQL('query($origin:String!,$destination:String!,$date:String){searchTrips(origin:$origin,destination:$destination,date:$date){id route origin destination departureTime price availableSeats}}', args)).searchTrips);
+    if (params.name === 'get_trip_detail') {
+        return text((await graphQL('query($id:ID!){trip(id:$id){id route origin destination departureTime price availableSeats}}', { id: args.tripId })).trip || { error: 'Trip not found' });
+    }
+    if (params.name === 'get_booking_status')
+        return text((await graphQL('query($bookingCode:String!,$email:String!){bookingStatus(bookingCode:$bookingCode,email:$email){bookingCode tripId status seatNumbers}}', args)).bookingStatus);
+    if (params.name === 'get_revenue_summary')
+        return text(await analytics(`/analytics/revenue?days=${args.days || 30}`));
+    if (params.name === 'get_popular_routes')
+        return text(await analytics('/analytics/popular-routes'));
+    throw new Error('Unknown tool');
+});
+const resources = {
+    'bus://policy/cancellation': 'Chính sách hủy vé: hủy trước 24 giờ được hoàn 100%; trước 12 giờ được hoàn 50%.',
+    'bus://policy/checkin': 'Hướng dẫn check-in: có mặt trước giờ khởi hành 30 phút, xuất trình mã QR và giấy tờ tùy thân.',
+    'bus://routes/popular': 'Danh sách này được cập nhật từ tool get_popular_routes.',
+    'bus://system/health': 'Dịch vụ demo: GraphQL, booking service, analytics service và Kafka phải hoạt động để dữ liệu đầy đủ.',
+};
+server.setRequestHandler(ListResourcesRequestSchema, async () => ({ resources: Object.entries(resources).map(([uri, value]) => ({ uri, name: uri, mimeType: 'text/plain', description: value })) }));
+server.setRequestHandler(ReadResourceRequestSchema, async ({ params }) => {
+    const value = resources[params.uri];
+    if (!value)
+        throw new Error('Resource not found');
+    return { contents: [{ uri: params.uri, mimeType: 'text/plain', text: value }] };
+});
+await server.connect(new StdioServerTransport());
+console.error('bus-portal MCP server is ready');
 //# sourceMappingURL=index.js.map

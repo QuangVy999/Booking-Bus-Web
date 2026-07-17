@@ -1,4 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bus portal – Phần 4
+
+## Analytics (Kafka)
+
+Chạy hạ tầng từ thư mục `backend`:
+
+```bash
+docker compose up -d
+```
+
+Sau khi cài dependency cho từng service, chạy theo thứ tự: `booking-service`, `analytics-service`, `graphql-server`, `bus-portal` và `frontend`.
+
+Kafka topics được tạo tự động: `search-events`, `booking-events`, `payment-events`. Analytics service lưu event idempotent vào PostgreSQL và cung cấp các endpoint `/analytics/revenue`, `/analytics/bookings-by-route`, `/analytics/popular-routes`, `/analytics/conversion`.
+
+Biến môi trường dùng khi chạy local:
+
+```bash
+KAFKA_BROKERS=localhost:9092
+ANALYTICS_SERVICE_URL=http://localhost:4010
+BACKEND_GRAPHQL_URL=http://localhost:4000/graphql
+```
+
+## Getting Started
 
 ## Getting Started
 

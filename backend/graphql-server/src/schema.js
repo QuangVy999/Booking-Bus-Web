@@ -10,9 +10,17 @@ export const typeDefs = `#graphql
     token: String!
     user: User!
   }
+  type Trip { id: ID!, route: String!, origin: String!, destination: String!, departureTime: String!, price: Int!, availableSeats: Int! }
+  type BookingStatus { bookingCode: String!, tripId: String!, status: String!, seatNumbers: [String!]! }
+  type AnalyticsPoint { label: String!, value: Float! }
 
   type Query {
     me: User
+    searchTrips(origin: String!, destination: String!, date: String): [Trip!]!
+    trip(id: ID!): Trip
+    bookingStatus(bookingCode: String!, email: String!): BookingStatus
+    revenueSummary(days: Int): [AnalyticsPoint!]!
+    popularRoutes: [AnalyticsPoint!]!
   }
 
   type Mutation {
