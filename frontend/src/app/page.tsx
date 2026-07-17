@@ -5,10 +5,34 @@ import SearchForm from "@/components/search/SearchForm";
 import TripSearchResults from "@/components/search/TripSearchResults";
 import { Compass, Shield, Award, HeartHandshake } from "lucide-react";
 
+import { Metadata } from "next";
+
 interface SearchParams {
   origin?: string;
   destination?: string;
   date?: string;
+}
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
+  const { origin, destination, date } = await searchParams;
+  if (origin && destination && date) {
+    const formattedDate = new Date(date).toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+    });
+    return {
+      title: `Vé xe ${origin} đi ${destination} ngày ${formattedDate} | VÉ XE RẺ`,
+      description: `Đặt vé xe khách ${origin} đi ${destination} khởi hành ngày ${formattedDate} giá rẻ nhất, uy tín chất lượng cao.`,
+    };
+  }
+  return {
+    title: "Đặt Vé Xe Khách Nhanh Chóng & An Toàn | VÉ XE RẺ",
+    description: "Hệ thống đặt vé xe khách liên tỉnh chất lượng cao, sơ đồ chỗ ngồi thời gian thực tích hợp trợ lý AI.",
+  };
 }
 
 const POPULAR_ROUTES = [
@@ -58,6 +82,13 @@ export default async function Home({
   let errorMsg = "";
 
   if (isSearching) {
+    // Log search event to Analytics Service (Kafka) in background
+    fetch(`${process.env.ANALYTICS_SERVICE_URL || "http://localhost:4010"}/events/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ origin, destination, date })
+    }).catch(() => {});
+
     try {
       const data = await graphqlRequest<{ searchTrips: any[] }, any>({
         query: SEARCH_TRIPS_QUERY,
