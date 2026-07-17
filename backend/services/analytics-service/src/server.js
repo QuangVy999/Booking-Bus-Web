@@ -3,6 +3,7 @@ import express from 'express';
 import { Kafka } from 'kafkajs';
 import pg from 'pg';
 import crypto from 'node:crypto';
+import jwt from 'jsonwebtoken';
 
 const { Pool } = pg;
 const port = Number(process.env.PORT || 4010);
@@ -46,6 +47,26 @@ async function startConsumer() {
 const app = express();
 app.get('/health', (_, res) => res.json({ status: 'ok', service: 'analytics-service' }));
 app.use(express.json());
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+
+function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+}
+
+// Some endpoints could be public or AI-specific, but let's protect all analytics data
+app.use('/analytics', requireAuth);
 app.post('/events/search', async (req, res, next) => {
   try {
     const { origin, destination, date } = req.body || {};

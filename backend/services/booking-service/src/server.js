@@ -7,9 +7,11 @@ import 'dotenv/config';
 import { db } from './db.js';
 import { connectRabbitMQ } from './rabbitmq.js';
 import { seatInventoryGateway } from './seatInventoryGateway.js';
+import { tripGateway } from './tripGateway.js';
 import { createBookingRepository } from './bookingRepository.js';
 import { createBookingService } from './bookingService.js';
 import { createBookingGrpcHandlers } from './bookingGrpcHandlers.js';
+import { startExpiryWorker, stopExpiryWorker } from './worker.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +28,7 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const bookingProto = grpc.loadPackageDefinition(packageDefinition).booking;
 
 const repository = createBookingRepository(db);
-const service = createBookingService(repository, seatInventoryGateway);
+const service = createBookingService(repository, seatInventoryGateway, tripGateway);
 const handlers = createBookingGrpcHandlers(service);
 
 const grpcServer = new grpc.Server();
@@ -37,6 +39,7 @@ const grpcAddress = process.env.GRPC_ADDRESS || '0.0.0.0:50053';
 
 async function main() {
   await connectRabbitMQ();
+  startExpiryWorker();
   
   grpcServer.bindAsync(
     grpcAddress,
@@ -60,6 +63,7 @@ process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, shutting down...');
   grpcServer.tryShutdown(async () => {
     console.log('gRPC server closed.');
+    stopExpiryWorker();
     await db.destroy();
     console.log('Database connection closed.');
     process.exit(0);
@@ -70,6 +74,7 @@ process.on('SIGINT', async () => {
   console.log('Received SIGINT, shutting down...');
   grpcServer.tryShutdown(async () => {
     console.log('gRPC server closed.');
+    stopExpiryWorker();
     await db.destroy();
     console.log('Database connection closed.');
     process.exit(0);

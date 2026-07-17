@@ -96,31 +96,36 @@ export const resolvers = {
       }
     },
 
-    getStops: async () => {
+    getStops: async (_, __, context) => {
+      requireRole(context, ['Admin', 'Check-in Staff']);
       try {
         const response = await callUnary(grpcClients.trip, 'GetStops', {});
         return response.stops || [];
       } catch (error) { throw toGraphQLError(error, 'Cannot get stops'); }
     },
-    getRoutes: async () => {
+    getRoutes: async (_, __, context) => {
+      requireRole(context, ['Admin']);
       try {
         const response = await callUnary(grpcClients.trip, 'GetRoutes', {});
         return response.routes || [];
       } catch (error) { throw toGraphQLError(error, 'Cannot get routes'); }
     },
-    getVehicles: async () => {
+    getVehicles: async (_, __, context) => {
+      requireRole(context, ['Admin']);
       try {
         const response = await callUnary(grpcClients.trip, 'GetVehicles', {});
         return response.vehicles || [];
       } catch (error) { throw toGraphQLError(error, 'Cannot get vehicles'); }
     },
-    getTrips: async (_, { route_id, status }) => {
+    getTrips: async (_, { route_id, status }, context) => {
+      requireRole(context, ['Admin', 'Check-in Staff']);
       try {
         const response = await callUnary(grpcClients.trip, 'GetTrips', { route_id, status });
         return response.trips || [];
       } catch (error) { throw toGraphQLError(error, 'Cannot get trips'); }
     },
-    getBookingsByTrip: async (_, { trip_id }) => {
+    getBookingsByTrip: async (_, { trip_id }, context) => {
+      requireRole(context, ['Admin', 'Check-in Staff']);
       try {
         const response = await callUnary(grpcClients.booking, 'GetBookingsByTrip', { trip_id });
         return response.bookings || [];

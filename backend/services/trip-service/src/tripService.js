@@ -164,4 +164,16 @@ export const tripService = {
       callback({ code: 13, message: err.message });
     }
   },
+  async getTripById(call, callback) {
+    try {
+      const trips = await tripRepository.getTrips();
+      const trip = trips.find(t => t.id === call.request.id);
+      if (!trip) throw new Error('Trip not found');
+      trip.departure_time = convertISOString(trip.departure_time);
+      trip.arrival_time = convertISOString(trip.arrival_time);
+      callback(null, trip);
+    } catch (err) {
+      callback({ code: 13, message: err.message });
+    }
+  },
 };

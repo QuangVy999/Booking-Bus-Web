@@ -32,6 +32,7 @@ message HoldSeatsResponse {
 message ConfirmSeatsRequest {
   string trip_id = 1;
   repeated string seat_numbers = 2;
+  string booking_id = 3;
 }
 
 message ConfirmSeatsResponse {
@@ -42,6 +43,7 @@ message ConfirmSeatsResponse {
 message ReleaseSeatsRequest {
   string trip_id = 1;
   repeated string seat_numbers = 2;
+  string booking_id = 3;
 }
 
 message ReleaseSeatsResponse {

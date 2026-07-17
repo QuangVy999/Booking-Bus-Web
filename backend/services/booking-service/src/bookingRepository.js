@@ -57,6 +57,22 @@ export function createBookingRepository(db) {
       });
     },
 
+    async getExpiredPendingBookings(minutes, executor = db) {
+      const expirationTime = new Date(Date.now() - minutes * 60 * 1000);
+      const bookings = await executor('bookings')
+        .where('status', 'PENDING_PAYMENT')
+        .where('created_at', '<', expirationTime);
+        
+      const enrichedBookings = await Promise.all(bookings.map(async b => {
+        const seats = await executor('booking_seats').where({ booking_id: b.id }).select('seat_number');
+        return {
+          ...b,
+          seatNumbers: seats.map(s => s.seat_number)
+        };
+      }));
+      return enrichedBookings;
+    },
+
     async getTransaction() {
       return db.transaction();
     }

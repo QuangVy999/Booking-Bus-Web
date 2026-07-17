@@ -55,11 +55,12 @@ export const seatInventoryGateway = {
     }
   },
 
-  async confirmSeats(tripId, seatNumbers) {
+  async confirmSeats(tripId, seatNumbers, bookingId) {
     try {
       const response = await callUnary('ConfirmSeats', {
         trip_id: tripId,
-        seat_numbers: seatNumbers
+        seat_numbers: seatNumbers,
+        booking_id: bookingId
       });
       return {
         success: response.success,
@@ -71,11 +72,12 @@ export const seatInventoryGateway = {
     }
   },
 
-  async releaseSeats(tripId, seatNumbers) {
+  async releaseSeats(tripId, seatNumbers, bookingId) {
     try {
       const response = await callUnary('ReleaseSeats', {
         trip_id: tripId,
-        seat_numbers: seatNumbers
+        seat_numbers: seatNumbers,
+        booking_id: bookingId
       });
       return {
         success: response.success,

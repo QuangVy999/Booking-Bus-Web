@@ -31,7 +31,7 @@ const grpcServer = new grpc.Server();
 
 grpcServer.addService(catalogProto.CatalogService.service, handlers);
 
-const grpcAddress = process.env.GRPC_ADDRESS || '0.0.0.0:50054';
+const grpcAddress = process.env.GRPC_ADDRESS || '0.0.0.0:50055';
 
 grpcServer.bindAsync(
   grpcAddress,

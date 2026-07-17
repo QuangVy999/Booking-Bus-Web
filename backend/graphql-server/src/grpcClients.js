@@ -26,8 +26,8 @@ const seatProto = grpc.loadPackageDefinition(seatDef).seat_inventory;
 const catalogProto = grpc.loadPackageDefinition(catalogDef).catalog;
 
 const userClient = new userProto.UserService(process.env.USER_SERVICE_ADDR || 'localhost:50051', grpc.credentials.createInsecure());
-const bookingClient = new bookingProto.BookingService(process.env.BOOKING_SERVICE_ADDR || 'localhost:50052', grpc.credentials.createInsecure());
-const seatClient = new seatProto.SeatInventoryService(process.env.SEAT_INVENTORY_SERVICE_ADDR || 'localhost:50053', grpc.credentials.createInsecure());
+const bookingClient = new bookingProto.BookingService(process.env.BOOKING_SERVICE_ADDR || 'localhost:50053', grpc.credentials.createInsecure());
+const seatClient = new seatProto.SeatInventoryService(process.env.SEAT_INVENTORY_SERVICE_ADDR || 'localhost:50052', grpc.credentials.createInsecure());
 const tripClient = new tripProto.TripService(process.env.TRIP_SERVICE_ADDR || 'localhost:50054', grpc.credentials.createInsecure());
 const catalogClient = new catalogProto.CatalogService(process.env.CATALOG_SERVICE_ADDR || 'localhost:50055', grpc.credentials.createInsecure());
 
