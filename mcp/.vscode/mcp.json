@@ -1,0 +1,13 @@
+{  
+  "servers": {  
+    "busPortal": {  
+      "type": "stdio",  
+      "command": "node",  
+      "args": ["${workspaceFolder}/bus-portal/build/index.js"], 
+      "cwd": "${workspaceFolder}",  
+      "env": {  
+        "BACKEND_GRAPHQL_URL": "http://localhost:4000/graphql" 
+      }  
+    }  
+  }  
+}
