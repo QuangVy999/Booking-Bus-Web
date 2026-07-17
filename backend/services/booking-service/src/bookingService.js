@@ -147,15 +147,16 @@ export function createBookingService(repository, seatInventoryGateway) {
         return booking;
       }
 
-      if (bookingCode && passengerEmail) {
+      if (bookingCode) {
         const booking = await repository.getBookingByCode(bookingCode);
-        if (!booking || booking.passenger_email.toLowerCase() !== passengerEmail.toLowerCase()) {
+        if (!booking) throw new Error('NOT_FOUND: Booking not found');
+        if (passengerEmail && booking.passenger_email.toLowerCase() !== passengerEmail.toLowerCase()) {
           throw new Error('NOT_FOUND: Booking code and email do not match');
         }
         return booking;
       }
 
-      throw new Error('INVALID_ARGUMENT: Either bookingId or (bookingCode and passengerEmail) are required');
+      throw new Error('INVALID_ARGUMENT: Either bookingId or bookingCode is required');
     },
 
     async getBookingsByTrip(tripId) {

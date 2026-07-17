@@ -20,11 +20,49 @@ export const tripRepository = {
 
   // ROUTES
   async createRoute(data) {
-    const [route] = await db("routes").insert(data).returning("*");
+    const startStop = await db("stops").where({ id: data.start_stop_id }).first();
+    const endStop = await db("stops").where({ id: data.end_stop_id }).first();
+    const getCityName = (stopName) => {
+      if (stopName.includes("TP.HCM")) return "TP.HCM";
+      if (stopName.includes("Cần Thơ")) return "Cần Thơ";
+      if (stopName.includes("Đà Lạt")) return "Đà Lạt";
+      if (stopName.includes("Nha Trang")) return "Nha Trang";
+      if (stopName.includes("Hà Nội")) return "Hà Nội";
+      if (stopName.includes("Hải Phòng")) return "Hải Phòng";
+      return stopName;
+    };
+    const origin = startStop ? getCityName(startStop.name) : "TP.HCM";
+    const destination = endStop ? getCityName(endStop.name) : "Đà Lạt";
+    const routeData = {
+      ...data,
+      origin,
+      destination,
+      distance: 300,
+      duration: "6 giờ"
+    };
+    const [route] = await db("routes").insert(routeData).returning("*");
     return route;
   },
   async updateRoute(id, data) {
-    const [route] = await db("routes").where({ id }).update(data).returning("*");
+    const routeData = { ...data };
+    if (data.start_stop_id || data.end_stop_id) {
+      const startId = data.start_stop_id || (await db("routes").where({ id }).first())?.start_stop_id;
+      const endId = data.end_stop_id || (await db("routes").where({ id }).first())?.end_stop_id;
+      const startStop = await db("stops").where({ id: startId }).first();
+      const endStop = await db("stops").where({ id: endId }).first();
+      const getCityName = (stopName) => {
+        if (stopName.includes("TP.HCM")) return "TP.HCM";
+        if (stopName.includes("Cần Thơ")) return "Cần Thơ";
+        if (stopName.includes("Đà Lạt")) return "Đà Lạt";
+        if (stopName.includes("Nha Trang")) return "Nha Trang";
+        if (stopName.includes("Hà Nội")) return "Hà Nội";
+        if (stopName.includes("Hải Phòng")) return "Hải Phòng";
+        return stopName;
+      };
+      if (startStop) routeData.origin = getCityName(startStop.name);
+      if (endStop) routeData.destination = getCityName(endStop.name);
+    }
+    const [route] = await db("routes").where({ id }).update(routeData).returning("*");
     return route;
   },
   async deleteRoute(id) {
@@ -37,11 +75,23 @@ export const tripRepository = {
 
   // VEHICLES
   async createVehicle(data) {
-    const [vehicle] = await db("vehicles").insert(data).returning("*");
+    const vehicleData = {
+      ...data,
+      plate_number: data.license_plate,
+      capacity: data.total_seats,
+      type: data.total_seats === 20 ? "Limousine 20 chỗ" : data.total_seats === 40 ? "Giường nằm 40 chỗ" : "Ghế ngồi " + data.total_seats + " chỗ"
+    };
+    const [vehicle] = await db("vehicles").insert(vehicleData).returning("*");
     return vehicle;
   },
   async updateVehicle(id, data) {
-    const [vehicle] = await db("vehicles").where({ id }).update(data).returning("*");
+    const vehicleData = { ...data };
+    if (data.license_plate) vehicleData.plate_number = data.license_plate;
+    if (data.total_seats) {
+      vehicleData.capacity = data.total_seats;
+      vehicleData.type = data.total_seats === 20 ? "Limousine 20 chỗ" : data.total_seats === 40 ? "Giường nằm 40 chỗ" : "Ghế ngồi " + data.total_seats + " chỗ";
+    }
+    const [vehicle] = await db("vehicles").where({ id }).update(vehicleData).returning("*");
     return vehicle;
   },
   async deleteVehicle(id) {
@@ -54,7 +104,11 @@ export const tripRepository = {
 
   // TRIPS
   async createTrip(data) {
-    const [trip] = await db("trips").insert(data).returning("*");
+    const tripData = {
+      ...data,
+      bus_company: "Phương Trang Demo"
+    };
+    const [trip] = await db("trips").insert(tripData).returning("*");
     return trip;
   },
   async updateTrip(id, data) {

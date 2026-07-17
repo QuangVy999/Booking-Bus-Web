@@ -18,6 +18,7 @@ interface Seat {
 interface BookingPageClientProps {
   initialSeats: Seat[];
   tripId: string;
+  trip?: any;
 }
 
 const initialState = {
@@ -29,11 +30,10 @@ const initialState = {
   expiryTimestamp: 0
 };
 
-export default function BookingPageClient({ initialSeats, tripId }: BookingPageClientProps) {
+export default function BookingPageClient({ initialSeats, tripId, trip }: BookingPageClientProps) {
   const router = useRouter();
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>('');
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // useActionState for form handling
   const [state, formAction, isPending] = useActionState<any, FormData>(
@@ -44,12 +44,6 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
         setErrorMsg('Vui lòng chọn ít nhất 1 ghế.');
         toast.error('Vui lòng chọn ít nhất 1 ghế.');
         return { success: false, message: 'Vui lòng chọn ít nhất 1 ghế.' };
-      }
-
-      if (!acceptedTerms) {
-        setErrorMsg('Bạn phải đồng ý với điều khoản đặt vé.');
-        toast.error('Vui lòng chấp nhận điều khoản đặt vé.');
-        return { success: false, message: 'Vui lòng chấp nhận điều khoản đặt vé.' };
       }
 
       try {
@@ -96,7 +90,7 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
             <span>&larr; Quay lại trang chủ</span>
           </Link>
           <h1 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">
-            Chuyến xe {tripId}
+            {trip ? `Chuyến xe ${trip.route.origin} → ${trip.route.destination}` : `Chuyến xe ${tripId}`}
           </h1>
         </div>
         <form action={formAction} className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.7fr] gap-8 items-start">
@@ -162,7 +156,7 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
 
                   {/* Email */}
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500" htmlFor="passengerEmail">Email *</label>
+                    <label className="text-xs font-bold text-slate-555" htmlFor="passengerEmail">Email *</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                         <Mail className="w-4 h-4" />
@@ -189,21 +183,6 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
                   <p>(*) Sau khi hoàn tất đặt vé và thanh toán mô phỏng thành công, thông tin vé điện tử sẽ được gửi về địa chỉ Email đăng ký.</p>
                 </div>
               </div>
-
-              {/* Terms Checkbox */}
-              <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="acceptTerms"
-                  checked={acceptedTerms}
-                  onChange={(e) => setAcceptedTerms(e.target.checked)}
-                  disabled={isPending}
-                  className="w-4.5 h-4.5 accent-orange-500 cursor-pointer"
-                />
-                <label htmlFor="acceptTerms" className="text-xs text-slate-500 font-semibold cursor-pointer selection:bg-transparent">
-                  Chấp nhận <span className="text-orange-500 hover:underline">điều khoản đặt vé</span> & chính sách bảo mật thông tin của FUTA Bus Lines
-                </label>
-              </div>
             </div>
           </div>
 
@@ -214,6 +193,7 @@ export default function BookingPageClient({ initialSeats, tripId }: BookingPageC
               selectedSeats={selectedSeats}
               isPending={isPending}
               errorMessage={errorMsg}
+              trip={trip}
             />
           </div>
         </form>

@@ -93,6 +93,19 @@ export function createSeatInventoryGrpcHandlers(seatInventoryService) {
       } catch (error) {
         callback(toGrpcError(error));
       }
+    },
+    async unblockSeats(call, callback) {
+      try {
+        const { trip_id, seat_numbers } = call.request;
+        const result = await seatInventoryService.unblockSeats(trip_id, seat_numbers);
+        
+        callback(null, {
+          success: result.success,
+          message: result.message
+        });
+      } catch (error) {
+        callback(toGrpcError(error));
+      }
     }
   };
 }

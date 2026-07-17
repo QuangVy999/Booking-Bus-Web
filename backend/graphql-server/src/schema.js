@@ -132,6 +132,7 @@ export const typeDefs = `#graphql
 
     checkInBooking(booking_code: String!): CheckInResponse!
     blockSeats(trip_id: String!, seat_numbers: [String!]!): GeneralResponse!
+    unblockSeats(trip_id: String!, seat_numbers: [String!]!): GeneralResponse!
 
     createRoute(origin: String!, destination: String!, distance: Float!, duration: String!): Route!
     createVehicle(plateNumber: String!, type: String!, capacity: Int!): Vehicle!

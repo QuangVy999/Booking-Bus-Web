@@ -8,11 +8,32 @@ interface CheckoutFormProps {
   selectedSeats: string[];
   isPending: boolean;
   errorMessage?: string;
+  trip?: any;
 }
 
-export default function CheckoutForm({ tripId, selectedSeats, isPending, errorMessage }: CheckoutFormProps) {
-  const pricePerSeat = 250000;
+export default function CheckoutForm({ tripId, selectedSeats, isPending, errorMessage, trip }: CheckoutFormProps) {
+  const pricePerSeat = trip ? trip.price : 250000;
   const totalAmount = selectedSeats.length * pricePerSeat;
+
+  const formatDepartureTime = (isoString: string) => {
+    try {
+      const dateObj = new Date(isoString);
+      const timePart = dateObj.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC",
+      });
+      const datePart = dateObj.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone: "UTC",
+      });
+      return `${timePart} ${datePart}`;
+    } catch (e) {
+      return "08:00 27/07/2026";
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -25,11 +46,15 @@ export default function CheckoutForm({ tripId, selectedSeats, isPending, errorMe
         <div className="space-y-2 text-xs text-slate-600">
           <div className="flex justify-between">
             <span className="text-slate-400">Tuyến xe:</span>
-            <span className="font-semibold text-slate-700">Chuyến xe {tripId}</span>
+            <span className="font-semibold text-slate-700">
+              {trip ? `${trip.route.origin} → ${trip.route.destination}` : `Chuyến xe ${tripId}`}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Thời gian xuất bến:</span>
-            <span className="font-semibold text-emerald-600 font-mono">08:00 27/07/2026</span>
+            <span className="font-semibold text-emerald-600 font-mono">
+              {trip ? formatDepartureTime(trip.departureTime) : "08:00 27/07/2026"}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Số lượng ghế:</span>

@@ -27,10 +27,10 @@ export async function seed(knex) {
   const route4 = '3620e9ad-654d-4be9-aa29-87c2fb24fb3b';
 
   await knex('routes').insert([
-    { id: route1, name: 'TP.HCM - Cần Thơ', start_stop_id: stop1, end_stop_id: stop2 },
-    { id: route2, name: 'TP.HCM - Đà Lạt', start_stop_id: stop1, end_stop_id: stop3 },
-    { id: route3, name: 'Hà Nội - TP.HCM', start_stop_id: stop4, end_stop_id: stop1 },
-    { id: route4, name: 'Đà Lạt - Cần Thơ', start_stop_id: stop3, end_stop_id: stop2 }
+    { id: route1, name: 'TP.HCM - Cần Thơ', start_stop_id: stop1, end_stop_id: stop2, origin: 'TP.HCM', destination: 'Cần Thơ', distance: 170, duration: '3.5 giờ' },
+    { id: route2, name: 'TP.HCM - Đà Lạt', start_stop_id: stop1, end_stop_id: stop3, origin: 'TP.HCM', destination: 'Đà Lạt', distance: 310, duration: '6 giờ' },
+    { id: route3, name: 'Hà Nội - TP.HCM', start_stop_id: stop4, end_stop_id: stop1, origin: 'Hà Nội', destination: 'TP.HCM', distance: 1700, duration: '30 giờ' },
+    { id: route4, name: 'Đà Lạt - Cần Thơ', start_stop_id: stop3, end_stop_id: stop2, origin: 'Đà Lạt', destination: 'Cần Thơ', distance: 400, duration: '8 giờ' }
   ]);
 
   const vehicle1 = '2938a163-95af-4b2a-886b-4e9dfd08c5ea';
@@ -49,10 +49,10 @@ export async function seed(knex) {
   };
 
   await knex('vehicles').insert([
-    { id: vehicle1, license_plate: '51B-123.45', total_seats: 30, seat_map: generateSeatMap(30) },
-    { id: vehicle2, license_plate: '65C-987.65', total_seats: 40, seat_map: generateSeatMap(40) },
-    { id: vehicle3, license_plate: '49D-111.22', total_seats: 20, seat_map: generateSeatMap(20) },
-    { id: vehicle4, license_plate: '29A-333.44', total_seats: 30, seat_map: generateSeatMap(30) }
+    { id: vehicle1, license_plate: '51B-123.45', plate_number: '51B-123.45', total_seats: 30, capacity: 30, type: 'Ghế ngồi 30 chỗ', seat_map: generateSeatMap(30) },
+    { id: vehicle2, license_plate: '65C-987.65', plate_number: '65C-987.65', total_seats: 40, capacity: 40, type: 'Giường nằm 40 chỗ', seat_map: generateSeatMap(40) },
+    { id: vehicle3, license_plate: '49D-111.22', plate_number: '49D-111.22', total_seats: 20, capacity: 20, type: 'Limousine 20 chỗ', seat_map: generateSeatMap(20) },
+    { id: vehicle4, license_plate: '29A-333.44', plate_number: '29A-333.44', total_seats: 30, capacity: 30, type: 'Ghế ngồi 30 chỗ', seat_map: generateSeatMap(30) }
   ]);
 
   const now = new Date();
@@ -70,7 +70,8 @@ export async function seed(knex) {
       departure_time: nextDay, 
       arrival_time: nextDayArr, 
       price: 150000, 
-      status: 'ACTIVE' 
+      status: 'ACTIVE',
+      bus_company: 'Phương Trang Demo'
     },
     { 
       id: '2081e7d2-4d43-467a-85ef-968b57be2bc0', 
@@ -79,7 +80,8 @@ export async function seed(knex) {
       departure_time: next2Days, 
       arrival_time: next2DaysArr, 
       price: 250000, 
-      status: 'ACTIVE' 
+      status: 'ACTIVE',
+      bus_company: 'Phương Trang Demo'
     },
     { 
       id: 'f8eb738d-0b60-4b2a-ae7b-231a44c52f6b', 
@@ -88,7 +90,8 @@ export async function seed(knex) {
       departure_time: nextDay, 
       arrival_time: new Date(nextDay.getTime() + 30 * 3600000), 
       price: 800000, 
-      status: 'PENDING' 
+      status: 'PENDING',
+      bus_company: 'Phương Trang Demo'
     },
     { 
       id: 'a71e847c-502a-4424-aa80-e8f00db1f855', 
@@ -97,7 +100,18 @@ export async function seed(knex) {
       departure_time: next2Days, 
       arrival_time: new Date(next2Days.getTime() + 8 * 3600000), 
       price: 300000, 
-      status: 'ACTIVE' 
+      status: 'ACTIVE',
+      bus_company: 'Phương Trang Demo'
+    },
+    { 
+      id: 'trip_test_001', 
+      route_id: route2, 
+      vehicle_id: vehicle2, 
+      departure_time: new Date('2026-07-27T00:00:00.000Z'), 
+      arrival_time: new Date('2026-07-27T06:00:00.000Z'), 
+      price: 250000, 
+      status: 'ACTIVE',
+      bus_company: 'Phương Trang Demo'
     }
   ]);
 }

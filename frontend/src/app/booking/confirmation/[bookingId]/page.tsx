@@ -1,6 +1,8 @@
 import React from 'react';
 import { getBookingAction } from '@/app/actions/booking';
 import ConfirmationPageClient from './ConfirmationPageClient';
+import { graphqlRequest } from '@/lib/graphql/client';
+import { GET_TRIP_DETAIL_QUERY } from '@/lib/graphql/documents';
 
 interface PageProps {
   params: Promise<{
@@ -28,6 +30,18 @@ export default async function Page({ params }: PageProps) {
     );
   }
 
+  // Fetch trip details using GraphQL Gateway
+  let trip = null;
+  try {
+    const tripData = await graphqlRequest<{ tripDetail: any }, any>({
+      query: GET_TRIP_DETAIL_QUERY,
+      variables: { id: res.tripId },
+    });
+    trip = tripData?.tripDetail || null;
+  } catch (err) {
+    console.error("Failed to query trip detail in confirmation page:", err);
+  }
+
   const bookingData = {
     bookingId: res.bookingId,
     bookingCode: res.bookingCode,
@@ -40,7 +54,7 @@ export default async function Page({ params }: PageProps) {
 
   return (
     <div className="w-full flex items-center justify-center py-6">
-      <ConfirmationPageClient booking={bookingData} />
+      <ConfirmationPageClient booking={bookingData} trip={trip} />
     </div>
   );
 }

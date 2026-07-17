@@ -181,3 +181,11 @@ export async function blockSeats(trip_id: string, seat_numbers: string[]) {
     return { success: data.blockSeats.success, message: data.blockSeats.message };
   } catch (err: any) { return { success: false, error: err.message }; }
 }
+export async function unblockSeats(trip_id: string, seat_numbers: string[]) {
+  const token = await getAuthToken();
+  const query = `mutation UnblockSeats($trip_id: String!, $seat_numbers: [String!]!) { unblockSeats(trip_id: $trip_id, seat_numbers: $seat_numbers) { success message } }`;
+  try {
+    const data = await graphqlRequest<{ unblockSeats: any }>({ query, variables: { trip_id, seat_numbers }, token });
+    return { success: data.unblockSeats.success, message: data.unblockSeats.message };
+  } catch (err: any) { return { success: false, error: err.message }; }
+}

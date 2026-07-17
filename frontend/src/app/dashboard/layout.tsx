@@ -1,7 +1,32 @@
 import Link from "next/link";
-import { Bus, MapPin, Route as RouteIcon, Map, LogOut, LayoutDashboard } from "lucide-react";
+import { Bus, MapPin, Route as RouteIcon, Map, LayoutDashboard } from "lucide-react";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  let isAdmin = false;
+
+  if (token) {
+    try {
+      const payload: any = jwtDecode(token);
+      if (payload.role === "Admin") {
+        isAdmin = true;
+      }
+    } catch (e) {}
+  }
+
+  if (!isAdmin) {
+    return (
+      <main className="w-full min-w-0">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 min-h-[500px]">
+          {children}
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="flex flex-col md:flex-row gap-6 w-full relative">
       {/* Sidebar as a floating rounded card */}
