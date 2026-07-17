@@ -36,3 +36,30 @@ export const REGISTER_MUTATION = `
     }
   }
 `;
+
+export const SEARCH_TRIPS_QUERY = `
+  query SearchTrips($origin: String!, $destination: String!, $date: String!) {
+    searchTrips(origin: $origin, destination: $destination, date: $date) {
+      id
+      departureTime
+      arrivalTime
+      price
+      status
+      busCompany
+      availableSeats
+      route {
+        id
+        origin
+        destination
+        distance
+        duration
+      }
+      vehicle {
+        id
+        plateNumber
+        type
+        capacity
+      }
+    }
+  }
+`;

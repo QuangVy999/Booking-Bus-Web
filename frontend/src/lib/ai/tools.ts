@@ -36,7 +36,7 @@ export const busTools = {
         },
       ).catch(() => undefined);
       const data = await graphQL(
-        "query($origin:String!,$destination:String!,$date:String){searchTrips(origin:$origin,destination:$destination,date:$date){id route departureTime price availableSeats}}",
+        "query($origin:String!,$destination:String!,$date:String){searchTrips(origin:$origin,destination:$destination,date:$date){id route { origin destination } departureTime price availableSeats}}",
         { origin, destination, date },
       );
       return {

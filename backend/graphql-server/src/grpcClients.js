@@ -21,12 +21,27 @@ const bookingDefinition = protoLoader.loadSync(BOOKING_PROTO_PATH, loadOptions);
 const userProto = grpc.loadPackageDefinition(packageDefinition).user;
 const bookingProto = grpc.loadPackageDefinition(bookingDefinition).booking;
 
+const CATALOG_PROTO_PATH = path.resolve(__dirname, '../../protos/catalog.proto');
+const catalogPackageDefinition = protoLoader.loadSync(CATALOG_PROTO_PATH, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+});
+const catalogProto = grpc.loadPackageDefinition(catalogPackageDefinition).catalog;
+
 const userClient = new userProto.UserService(
   process.env.USER_SERVICE_ADDR || 'localhost:50051',
   grpc.credentials.createInsecure()
 );
 const bookingClient = new bookingProto.BookingService(
   process.env.BOOKING_SERVICE_ADDR || 'localhost:50053',
+  grpc.credentials.createInsecure()
+);
+
+const catalogClient = new catalogProto.CatalogService(
+  process.env.CATALOG_SERVICE_ADDR || 'localhost:50054',
   grpc.credentials.createInsecure()
 );
 
@@ -44,5 +59,6 @@ export function callUnary(client, method, request, timeoutMs = 2500) {
 
 export const grpcClients = {
   user: userClient,
-  booking: bookingClient,
+  catalog: catalogClient,
+  booking: bookingClient
 };
