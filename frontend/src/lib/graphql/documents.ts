@@ -63,3 +63,30 @@ export const SEARCH_TRIPS_QUERY = `
     }
   }
 `;
+
+export const GET_TRIP_DETAIL_QUERY = `
+  query GetTripDetail($id: ID!) {
+    tripDetail(id: $id) {
+      id
+      departureTime
+      arrivalTime
+      price
+      status
+      busCompany
+      availableSeats
+      route {
+        id
+        origin
+        destination
+        distance
+        duration
+      }
+      vehicle {
+        id
+        plateNumber
+        type
+        capacity
+      }
+    }
+  }
+`;

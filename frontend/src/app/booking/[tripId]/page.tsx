@@ -1,6 +1,8 @@
 import React from 'react';
 import { getSeatInventoryAction } from '@/app/actions/booking';
 import BookingPageClient from './BookingPageClient';
+import { graphqlRequest } from '@/lib/graphql/client';
+import { GET_TRIP_DETAIL_QUERY } from '@/lib/graphql/documents';
 
 interface PageProps {
   params: Promise<{
@@ -11,8 +13,17 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { tripId } = await params;
 
-  // Fetch initial seat inventory on server side
-  const res = await getSeatInventoryAction(tripId);
+  // Fetch seat inventory and trip details in parallel
+  const [res, tripData] = await Promise.all([
+    getSeatInventoryAction(tripId),
+    graphqlRequest<{ tripDetail: any }, any>({
+      query: GET_TRIP_DETAIL_QUERY,
+      variables: { id: tripId },
+    }).catch((err) => {
+      console.error("Failed to query trip detail for checkout page:", err);
+      return null;
+    })
+  ]);
 
   if (!res.success) {
     return (
@@ -28,9 +39,11 @@ export default async function Page({ params }: PageProps) {
     );
   }
 
+  const trip = tripData?.tripDetail || null;
+
   return (
     <div className="w-full py-6">
-      <BookingPageClient initialSeats={res.seats} tripId={tripId} />
+      <BookingPageClient initialSeats={res.seats} tripId={tripId} trip={trip} />
     </div>
   );
 }
