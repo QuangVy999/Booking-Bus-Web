@@ -27,6 +27,42 @@ function toGraphQLError(error, fallbackMessage = 'Internal server error') {
   });
 }
 
+function mapRoute(route) {
+  if (!route) return null;
+  return {
+    id: route.id,
+    origin: route.origin,
+    destination: route.destination,
+    distance: route.distance,
+    duration: route.duration
+  };
+}
+
+function mapVehicle(vehicle) {
+  if (!vehicle) return null;
+  return {
+    id: vehicle.id,
+    plateNumber: vehicle.plate_number,
+    type: vehicle.type,
+    capacity: vehicle.capacity
+  };
+}
+
+function mapTrip(trip) {
+  if (!trip) return null;
+  return {
+    id: trip.id,
+    route: mapRoute(trip.route),
+    vehicle: mapVehicle(trip.vehicle),
+    departureTime: trip.departure_time,
+    arrivalTime: trip.arrival_time,
+    price: trip.price,
+    status: trip.status,
+    busCompany: trip.bus_company,
+    availableSeats: trip.available_seats
+  };
+}
+
 export const resolvers = {
   Query: {
     me: async (_, __, context) => {
@@ -38,6 +74,22 @@ export const resolvers = {
         return response.user;
       } catch (error) {
         return null;
+      }
+    },
+    searchTrips: async (_, { origin, destination, date }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'SearchTrips', { origin, destination, date });
+        return (response.trips || []).map(mapTrip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to search trips');
+      }
+    },
+    tripDetail: async (_, { id }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'GetTripDetail', { trip_id: id });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to retrieve trip details');
       }
     }
   },
@@ -61,6 +113,37 @@ export const resolvers = {
         return response;
       } catch (error) {
         throw toGraphQLError(error, 'Cannot login');
+      }
+    },
+    createRoute: async (_, { origin, destination, distance, duration }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateRoute', { origin, destination, distance, duration });
+        return mapRoute(response.route);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create route');
+      }
+    },
+    createVehicle: async (_, { plateNumber, type, capacity }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateVehicle', { plate_number: plateNumber, type, capacity });
+        return mapVehicle(response.vehicle);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create vehicle');
+      }
+    },
+    createTrip: async (_, { routeId, vehicleId, departureTime, arrivalTime, price, busCompany }) => {
+      try {
+        const response = await callUnary(grpcClients.catalog, 'CreateTrip', {
+          route_id: routeId,
+          vehicle_id: vehicleId,
+          departure_time: departureTime,
+          arrival_time: arrivalTime,
+          price,
+          bus_company: busCompany
+        });
+        return mapTrip(response.trip);
+      } catch (error) {
+        throw toGraphQLError(error, 'Failed to create trip');
       }
     }
   }
