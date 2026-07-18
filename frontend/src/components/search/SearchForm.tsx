@@ -20,6 +20,16 @@ export default function SearchForm() {
   const originRef = useRef<HTMLDivElement>(null);
   const destRef = useRef<HTMLDivElement>(null);
 
+  // Sync state with URL search params (handling page nav/reloads)
+  useEffect(() => {
+    const o = searchParams.get("origin");
+    const d = searchParams.get("destination");
+    const dt = searchParams.get("date");
+    if (o !== null) setOrigin(o);
+    if (d !== null) setDestination(d);
+    if (dt !== null) setDate(dt);
+  }, [searchParams]);
+
   // Default date to tomorrow if not selected
   useEffect(() => {
     if (!date) {
