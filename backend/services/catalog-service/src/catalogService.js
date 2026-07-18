@@ -6,23 +6,23 @@ export function createCatalogService(repository) {
 
   return {
     async searchTrips(origin, destination, date) {
-      if (!origin || !destination || !date) {
-        throw new Error('INVALID_ARGUMENT: origin, destination and date are required');
+      if (!origin || !destination) {
+        throw new Error('INVALID_ARGUMENT: origin and destination are required');
       }
 
-      const cacheKey = `search:${origin}:${destination}:${date}`;
+      const cacheKey = `search:${origin}:${destination}:${date || 'all'}`;
 
       try {
         const cachedData = await redis.get(cacheKey);
         if (cachedData) {
-          console.log(`[Cache Hit] Serving search results for ${origin} -> ${destination} on ${date}`);
+          console.log(`[Cache Hit] Serving search results for ${origin} -> ${destination} on ${date || 'all'}`);
           return JSON.parse(cachedData);
         }
       } catch (err) {
         console.error('Redis read error:', err);
       }
 
-      console.log(`[Cache Miss] Querying trip-service for ${origin} -> ${destination} on ${date}`);
+      console.log(`[Cache Miss] Querying trip-service for ${origin} -> ${destination} on ${date || 'all'}`);
       
       // Get all routes and filter by origin and destination
       const routesRes = await callUnary(grpcClients.trip, 'GetRoutes', {});
@@ -41,10 +41,10 @@ export function createCatalogService(repository) {
       
       const routesMap = new Map();
       routesRes.routes.forEach(r => routesMap.set(r.id, r));
-
+ 
       const trips = [];
-      const targetDate = new Date(date).toISOString().split('T')[0];
-
+      const targetDate = date ? new Date(date).toISOString().split('T')[0] : null;
+ 
       for (const t of allTrips) {
         const tripDate = new Date(t.departure_time).toISOString().split('T')[0];
         const route = routesMap.get(t.route_id);
@@ -54,7 +54,7 @@ export function createCatalogService(repository) {
         // In tripRepository.js, origin and destination are saved in DB but not in proto.
         // We'll match against route name (which contains origin and destination typically)
         if (!route.name.includes(origin) || !route.name.includes(destination)) continue;
-        if (tripDate !== targetDate) continue;
+        if (targetDate && tripDate !== targetDate) continue;
 
         const vehicle = vehiclesMap.get(t.vehicle_id);
         
