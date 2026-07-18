@@ -4,7 +4,6 @@ import {
   stepCountIs,
   streamText,
   toUIMessageStream,
-  type UIMessage,
 } from "ai";
 import { busAdvisorChatModel } from "@/lib/ai/github-models";
 import { busTools } from "@/lib/ai/tools";
@@ -13,7 +12,7 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const { messages }: { messages: UIMessage[] } = await req.json();
+    const { messages }: { messages: any[] } = await req.json();
     
     // Map messages to ensure 'parts' is defined if missing (required by newer AI SDK versions)
     const preparedMessages = messages.map(m => {
