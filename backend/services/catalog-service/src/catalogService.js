@@ -42,11 +42,33 @@ export function createCatalogService(repository) {
       const routesMap = new Map();
       routesRes.routes.forEach(r => routesMap.set(r.id, r));
  
+      const getLocalDateString = (dateStr) => {
+        if (!dateStr) return null;
+        try {
+          const d = new Date(dateStr);
+          if (isNaN(d.getTime())) return dateStr.split('T')[0];
+          // Vietnam Time is UTC + 7 hours
+          const vietnamOffsetMs = 7 * 60 * 60 * 1000;
+          const localTime = new Date(d.getTime() + vietnamOffsetMs);
+          const year = localTime.getUTCFullYear();
+          const month = String(localTime.getUTCMonth() + 1).padStart(2, '0');
+          const day = String(localTime.getUTCDate()).padStart(2, '0');
+          return `${VietnamTimeFormat(year, month, day)}`;
+        } catch (e) {
+          return dateStr.split('T')[0];
+        }
+      };
+
+      // Helper function to format date
+      function VietnamTimeFormat(y, m, d) {
+        return `${y}-${m}-${d}`;
+      }
+
       const trips = [];
-      const targetDate = date ? new Date(date).toISOString().split('T')[0] : null;
+      const targetDate = getLocalDateString(date);
  
       for (const t of allTrips) {
-        const tripDate = new Date(t.departure_time).toISOString().split('T')[0];
+        const tripDate = getLocalDateString(t.departure_time);
         const route = routesMap.get(t.route_id);
         if (!route) continue;
         
