@@ -56,11 +56,24 @@ export async function seed(knex) {
   ]);
 
   const now = new Date();
-  const nextDay = new Date(now); nextDay.setDate(now.getDate() + 1);
-  const nextDayArr = new Date(nextDay); nextDayArr.setHours(nextDayArr.getHours() + 4);
+  
+  // Set nextDay to tomorrow, 08:00 AM local time
+  const nextDay = new Date(now);
+  nextDay.setDate(now.getDate() + 1);
+  nextDay.setHours(8, 0, 0, 0);
+  
+  // nextDayArr to 12:00 PM local time (4 hours duration)
+  const nextDayArr = new Date(nextDay);
+  nextDayArr.setHours(12, 0, 0, 0);
 
-  const next2Days = new Date(now); next2Days.setDate(now.getDate() + 2);
-  const next2DaysArr = new Date(next2Days); next2DaysArr.setHours(next2DaysArr.getHours() + 6);
+  // Set next2Days to the day after tomorrow, 08:00 AM local time
+  const next2Days = new Date(now);
+  next2Days.setDate(now.getDate() + 2);
+  next2Days.setHours(8, 0, 0, 0);
+  
+  // next2DaysArr to 02:00 PM local time (6 hours duration)
+  const next2DaysArr = new Date(next2Days);
+  next2DaysArr.setHours(14, 0, 0, 0);
 
   await knex('trips').insert([
     { 
